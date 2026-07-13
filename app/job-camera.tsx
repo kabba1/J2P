@@ -7,14 +7,18 @@ import {
   PermissionStatus,
   useCameraPermissions,
 } from 'expo-camera';
+import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  BackHandler,
   Linking,
+  Platform,
   Pressable,
   StyleSheet,
+  Switch,
   Text,
   useWindowDimensions,
   View,
@@ -22,14 +26,17 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CameraPermissionState } from '@/components/camera-permission-state';
+import { OpacitySlider } from '@/components/opacity-slider';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { cameraService } from '@/services/camera-service';
 import { useJobs } from '@/state/jobs-context';
 import { useMedia } from '@/state/media-context';
-import { MediaStage } from '@/types/media';
+import { JobMedia, MediaStage } from '@/types/media';
 import { isMediaStage, stageLabel } from '@/utils/media-stage';
 
 const flashModes: FlashMode[] = ['off', 'on', 'auto'];
+
+type BeforeLoadState = 'not-needed' | 'loading' | 'ready' | 'invalid' | 'missing';
 
 function nextFlashMode(current: FlashMode): FlashMode {
   const index = flashModes.indexOf(current);
@@ -41,16 +48,29 @@ export default function JobCameraScreen() {
   const params = useLocalSearchParams<{
     jobId?: string | string[];
     stage?: string | string[];
+    captureMode?: string | string[];
+    beforeMediaId?: string | string[];
+    pairId?: string | string[];
   }>();
   const rawJobId = Array.isArray(params.jobId) ? params.jobId[0] : params.jobId;
   const rawStage = Array.isArray(params.stage) ? params.stage[0] : params.stage;
+  const rawCaptureMode = Array.isArray(params.captureMode)
+    ? params.captureMode[0]
+    : params.captureMode;
+  const beforeMediaId = Array.isArray(params.beforeMediaId)
+    ? params.beforeMediaId[0]
+    : params.beforeMediaId;
+  const pairId = Array.isArray(params.pairId) ? params.pairId[0] : params.pairId;
   const stage: MediaStage | undefined = isMediaStage(rawStage) ? rawStage : undefined;
+  const isMatchedCapture = rawCaptureMode === 'matched-after';
   const { jobs, loading: jobsLoading } = useJobs();
-  const { countsForJob, refreshJob } = useMedia();
+  const { countsForJob, fileExists, getMedia, refreshJob } = useMedia();
   const job = jobs.find((candidate) => candidate.id === rawJobId);
   const [permission, requestPermission] = useCameraPermissions();
   const permissionRequested = useRef(false);
   const cameraRef = useRef<CameraView>(null);
+  const captureInFlightRef = useRef(false);
+  const zoomInitializedForRef = useRef<string | undefined>(undefined);
   const isFocused = useIsFocused();
   const { width, height } = useWindowDimensions();
   const landscape = width > height;
@@ -61,6 +81,11 @@ export default function JobCameraScreen() {
   const [flash, setFlash] = useState<FlashMode>('off');
   const [zoom, setZoom] = useState(0);
   const [capturing, setCapturing] = useState(false);
+  const [beforeMedia, setBeforeMedia] = useState<JobMedia>();
+  const [beforeLoadState, setBeforeLoadState] = useState<BeforeLoadState>('not-needed');
+  const [beforeError, setBeforeError] = useState<string>();
+  const [ghostEnabled, setGhostEnabled] = useState(true);
+  const [ghostOpacity, setGhostOpacity] = useState(0.5);
 
   useEffect(() => {
     void cameraService
@@ -79,6 +104,91 @@ export default function JobCameraScreen() {
     }
   }, [permission?.status, requestPermission]);
 
+  useEffect(() => {
+    if (!isMatchedCapture) {
+      setBeforeMedia(undefined);
+      setBeforeError(undefined);
+      setBeforeLoadState('not-needed');
+      return;
+    }
+
+    if (!beforeMediaId || !rawJobId || stage !== 'after') {
+      setBeforeMedia(undefined);
+      setBeforeError('This matched capture is missing a valid Before photo or After stage.');
+      setBeforeLoadState('invalid');
+      return;
+    }
+
+    let active = true;
+    setBeforeLoadState('loading');
+    setBeforeError(undefined);
+
+    void (async () => {
+      try {
+        const record = await getMedia(beforeMediaId);
+        if (!active) return;
+        if (!record || record.jobId !== rawJobId || record.stage !== 'before') {
+          setBeforeMedia(undefined);
+          setBeforeError('The selected Before photo is no longer available for this job.');
+          setBeforeLoadState('invalid');
+          return;
+        }
+
+        if (!(await fileExists(record.localUri))) {
+          if (!active) return;
+          setBeforeMedia(record);
+          setBeforeError('The selected Before photo file is missing from this device.');
+          setBeforeLoadState('missing');
+          return;
+        }
+
+        if (!active) return;
+        setBeforeMedia(record);
+        setBeforeLoadState('ready');
+      } catch (caughtError) {
+        if (!active) return;
+        setBeforeMedia(undefined);
+        setBeforeError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : 'The selected Before photo could not be loaded.',
+        );
+        setBeforeLoadState('invalid');
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [beforeMediaId, fileExists, getMedia, isMatchedCapture, rawJobId, stage]);
+
+  useEffect(() => {
+    if (!isMatchedCapture || beforeLoadState !== 'ready' || !beforeMedia) return;
+    if (zoomInitializedForRef.current === beforeMedia.id) return;
+
+    zoomInitializedForRef.current = beforeMedia.id;
+    const storedZoom = beforeMedia.zoom;
+    setZoom(
+      typeof storedZoom === 'number' && Number.isFinite(storedZoom)
+        ? Math.min(0.5, Math.max(0, storedZoom))
+        : 0,
+    );
+    setFacing('back');
+  }, [beforeLoadState, beforeMedia, isMatchedCapture]);
+
+  useEffect(() => {
+    if (!isFocused) setCameraReady(false);
+  }, [isFocused]);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => captureInFlightRef.current,
+    );
+    return () => subscription.remove();
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       if (rawJobId) void refreshJob(rawJobId).catch(() => undefined);
@@ -86,12 +196,12 @@ export default function JobCameraScreen() {
   );
 
   const closeCamera = () => {
-    if (!capturing) router.back();
+    if (!captureInFlightRef.current) router.back();
   };
 
   const capture = async () => {
     if (
-      capturing ||
+      captureInFlightRef.current ||
       !cameraReady ||
       !cameraRef.current ||
       !job ||
@@ -101,26 +211,48 @@ export default function JobCameraScreen() {
       return;
     }
 
+    if (isMatchedCapture && (!beforeMedia || beforeLoadState !== 'ready')) return;
+
+    captureInFlightRef.current = true;
     setCapturing(true);
     setCameraError(undefined);
     try {
       const photo = await cameraService.capturePhoto(cameraRef.current, facing, zoom);
-      router.push({
-        pathname: '/review',
-        params: {
-          jobId: rawJobId,
-          stage,
-          tempUri: photo.uri,
-          width: String(photo.width),
-          height: String(photo.height),
-          facing: photo.cameraFacing,
-          zoom: String(photo.zoom),
-          capturedAt: new Date().toISOString(),
-        },
-      });
+      const capturedAt = new Date().toISOString();
+      if (isMatchedCapture && beforeMedia) {
+        router.push({
+          pathname: '/pair-review',
+          params: {
+            jobId: rawJobId,
+            beforeMediaId: beforeMedia.id,
+            ...(pairId ? { pairId } : {}),
+            tempUri: photo.uri,
+            width: String(photo.width),
+            height: String(photo.height),
+            facing: photo.cameraFacing,
+            zoom: String(photo.zoom),
+            capturedAt,
+          },
+        });
+      } else {
+        router.push({
+          pathname: '/review',
+          params: {
+            jobId: rawJobId,
+            stage,
+            tempUri: photo.uri,
+            width: String(photo.width),
+            height: String(photo.height),
+            facing: photo.cameraFacing,
+            zoom: String(photo.zoom),
+            capturedAt,
+          },
+        });
+      }
     } catch {
       setCameraError('The photo could not be captured. Check the camera and try again.');
     } finally {
+      captureInFlightRef.current = false;
       setCapturing(false);
     }
   };
@@ -139,7 +271,41 @@ export default function JobCameraScreen() {
     );
   }
 
-  if (!job || !stage || !rawJobId || permission === null || cameraAvailable === undefined) {
+  if (!job || !stage || !rawJobId) {
+    return (
+      <SafeAreaView style={styles.loadingScreen}>
+        <StatusBar style="dark" />
+        <ActivityIndicator color={Colors.primary} size="large" />
+        <Text style={styles.loadingText}>Preparing job…</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (isMatchedCapture && (beforeLoadState === 'loading' || beforeLoadState === 'not-needed')) {
+    return (
+      <SafeAreaView style={styles.loadingScreen}>
+        <StatusBar style="dark" />
+        <ActivityIndicator color={Colors.primary} size="large" />
+        <Text style={styles.loadingText}>Loading Before photo…</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (isMatchedCapture && beforeLoadState !== 'ready') {
+    return (
+      <SafeAreaView style={styles.lightScreen}>
+        <StatusBar style="dark" />
+        <CameraPermissionState
+          title={beforeLoadState === 'missing' ? 'Before photo file missing' : 'Before photo unavailable'}
+          message={beforeError || 'The selected Before photo could not be prepared for matching.'}
+          actionLabel="Go Back"
+          onAction={() => router.back()}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  if (permission === null || cameraAvailable === undefined) {
     return (
       <SafeAreaView style={styles.loadingScreen}>
         <StatusBar style="dark" />
@@ -236,17 +402,34 @@ export default function JobCameraScreen() {
           />
         ) : null}
 
+        {isMatchedCapture && beforeMedia && ghostEnabled ? (
+          <Image
+            accessibilityLabel={`Ghost overlay for ${beforeMedia.shotName || 'selected Before photo'}`}
+            cachePolicy="memory-disk"
+            contentFit="contain"
+            pointerEvents="none"
+            source={{ uri: beforeMedia.localUri }}
+            style={[StyleSheet.absoluteFillObject, { opacity: ghostOpacity }]}
+          />
+        ) : null}
+
         <View pointerEvents="none" style={styles.jobOverlay}>
           <Text numberOfLines={1} style={styles.overlayJobName}>
             {job.name}
           </Text>
-          {job.serviceType ? (
+          {isMatchedCapture && beforeMedia ? (
+            <Text numberOfLines={1} style={styles.overlayService}>
+              {beforeMedia.shotName || 'Untitled Before photo'}
+            </Text>
+          ) : job.serviceType ? (
             <Text numberOfLines={1} style={styles.overlayService}>
               {job.serviceType}
             </Text>
           ) : null}
           <View style={styles.stageBadge}>
-            <Text style={styles.stageBadgeText}>{label} photo</Text>
+            <Text style={styles.stageBadgeText}>
+              {isMatchedCapture ? 'Align with Before' : `${label} photo`}
+            </Text>
           </View>
         </View>
 
@@ -283,13 +466,35 @@ export default function JobCameraScreen() {
             </Pressable>
           </View>
         </View>
+
+        {isMatchedCapture ? (
+          <View style={[styles.ghostPanel, landscape && styles.ghostPanelLandscape]}>
+            <View style={styles.ghostToggleRow}>
+              <Text style={styles.ghostToggleLabel}>Ghost overlay</Text>
+              <Switch
+                accessibilityLabel="Toggle Before photo ghost overlay"
+                onValueChange={setGhostEnabled}
+                thumbColor={Colors.surface}
+                trackColor={{ false: '#5E6672', true: Colors.primary }}
+                value={ghostEnabled}
+              />
+            </View>
+            <OpacitySlider
+              disabled={!ghostEnabled}
+              onChange={setGhostOpacity}
+              value={ghostOpacity}
+            />
+          </View>
+        ) : null}
       </View>
 
       <View style={[styles.capturePanel, landscape && styles.capturePanelLandscape]}>
         <View style={styles.captureText}>
-          <Text style={styles.captureStage}>{label}</Text>
+          <Text numberOfLines={2} style={styles.captureStage}>{label}</Text>
           <Text style={styles.captureCount}>
-            {count} saved {count === 1 ? 'photo' : 'photos'}
+            {isMatchedCapture && beforeMedia
+              ? `Match ${beforeMedia.shotName || 'Before photo'}`
+              : `${count} saved ${count === 1 ? 'photo' : 'photos'}`}
           </Text>
         </View>
         <Pressable
@@ -420,6 +625,32 @@ const styles = StyleSheet.create({
   },
   sideControlsLandscape: {
     bottom: Spacing.md,
+  },
+  ghostPanel: {
+    position: 'absolute',
+    right: Spacing.lg,
+    bottom: Spacing.lg,
+    left: 84,
+    gap: Spacing.sm,
+    padding: Spacing.md,
+    borderRadius: Radius.md,
+    backgroundColor: 'rgba(17,17,17,0.82)',
+  },
+  ghostPanelLandscape: {
+    left: 92,
+    bottom: Spacing.sm,
+    maxWidth: 420,
+  },
+  ghostToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.md,
+  },
+  ghostToggleLabel: {
+    color: Colors.surface,
+    fontSize: 14,
+    fontWeight: '700',
   },
   roundControl: {
     width: 54,

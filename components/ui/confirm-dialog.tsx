@@ -27,7 +27,13 @@ export function ConfirmDialog({
   const confirmColor = destructive ? Colors.danger : Colors.primary;
 
   return (
-    <Modal animationType="fade" transparent visible={visible} onRequestClose={onCancel}>
+    <Modal
+      animationType="fade"
+      transparent
+      visible={visible}
+      onRequestClose={() => {
+        if (!busy) onCancel();
+      }}>
       <View style={styles.backdrop}>
         <View accessibilityViewIsModal style={styles.card}>
           <View style={[styles.icon, { backgroundColor: destructive ? Colors.dangerSoft : Colors.primarySoft }]}>

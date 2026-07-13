@@ -51,6 +51,11 @@ export default function JobDashboardScreen() {
     router.push({ pathname: '/gallery', params: { jobId: job.id, stage } });
   };
 
+  const openAfterQueue = () => {
+    if (!job) return;
+    router.push({ pathname: '/after-queue', params: { jobId: job.id } });
+  };
+
   const confirmDelete = () => {
     if (!job) return;
     setDeleteVisible(true);
@@ -149,6 +154,24 @@ export default function JobDashboardScreen() {
             onPress={() => openGallery('after')}
           />
         </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Match After photos"
+          accessibilityHint="Open the list of Before photos that need matching After photos"
+          onPress={openAfterQueue}
+          style={({ pressed }) => [styles.matchCard, pressed && styles.matchCardPressed]}>
+          <View style={styles.matchIcon}>
+            <Ionicons name="copy-outline" size={27} color={Colors.primary} />
+          </View>
+          <View style={styles.matchText}>
+            <Text style={styles.matchTitle}>Match After Photos</Text>
+            <Text style={styles.matchMessage}>
+              Recreate each Before angle with a guided camera overlay.
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={23} color={Colors.primary} />
+        </Pressable>
 
         <View style={styles.shotSection}>
           <Text style={styles.sectionTitle}>Shot List</Text>
@@ -316,6 +339,43 @@ const styles = StyleSheet.create({
   stageRow: {
     flexDirection: 'row',
     gap: Spacing.sm,
+  },
+  matchCard: {
+    minHeight: 88,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    padding: Spacing.lg,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: '#B7D1FF',
+    backgroundColor: Colors.primarySoft,
+  },
+  matchCardPressed: {
+    opacity: 0.72,
+  },
+  matchIcon: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 24,
+    backgroundColor: Colors.surface,
+  },
+  matchText: {
+    flex: 1,
+  },
+  matchTitle: {
+    color: Colors.text,
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: '800',
+  },
+  matchMessage: {
+    color: Colors.textMuted,
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 2,
   },
   shotSection: {
     gap: Spacing.md,

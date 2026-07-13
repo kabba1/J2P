@@ -1,8 +1,8 @@
 # JobToPost
 
-JobToPost helps small service businesses organize customer jobs around Before, Progress, and After media. The current milestone provides offline job management, real device-camera capture, job-specific stage galleries, persistent app-private photo storage, optional shot notes, and derived photo counts.
+JobToPost helps small service businesses organize customer jobs around Before, Progress, and After media. The current milestone provides offline job management, real device-camera capture, job-specific stage galleries, persistent app-private photo storage, optional shot notes, derived photo counts, and a matched Before/After workflow with a ghost alignment overlay.
 
-Ghost alignment, pairing, cloud storage, AI, and marketing content generation remain future milestones.
+Cloud storage, AI guidance, and marketing content generation remain future milestones.
 
 ## Run the app
 
@@ -17,6 +17,7 @@ Scan the QR code with Expo Go on an Android device connected to the same network
 
 ```bash
 npm run lint
+npm test
 npx tsc --noEmit
 npx expo-doctor
 ```

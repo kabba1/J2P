@@ -83,6 +83,11 @@ export default function StageGalleryScreen() {
     router.push({ pathname: '/job-camera', params: { jobId: rawJobId, stage } });
   };
 
+  const openAfterQueue = () => {
+    if (!rawJobId) return;
+    router.push({ pathname: '/after-queue', params: { jobId: rawJobId } });
+  };
+
   const handleDelete = async () => {
     if (!pendingDelete) return;
     setDeleting(true);
@@ -202,6 +207,13 @@ export default function StageGalleryScreen() {
       />
 
       <View style={styles.bottomAction}>
+        {stage === 'after' ? (
+          <PrimaryButton
+            label="Match Before Photos"
+            icon="copy-outline"
+            onPress={openAfterQueue}
+          />
+        ) : null}
         <PrimaryButton label={stageCaptureLabel(stage)} icon="camera" onPress={openCamera} />
       </View>
 
@@ -328,6 +340,7 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.md,
     backgroundColor: Colors.background,
+    gap: Spacing.sm,
   },
   errorBanner: {
     flexDirection: 'row',

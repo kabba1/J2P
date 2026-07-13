@@ -12,14 +12,14 @@ Every job has one organized media library with three stages:
 
 ## Planned capabilities
 
-The After camera will eventually offer a ghost overlay of the matching Before photo so the user can reproduce the original angle. Completed pairs and progress media will later feed a content-pack workflow that creates social-ready before-and-after layouts, reels, captions, and platform-specific exports.
+Completed pairs and progress media will later feed a content-pack workflow that creates social-ready before-and-after layouts, reels, captions, and platform-specific exports.
 
 ## Current MVP boundary
 
-The current milestone covers offline job and photo management: users can create jobs, capture Before, Progress, and After photos with the device camera, review and name captures, store originals in app-private local storage, edit photo metadata, move photos between stages, and safely delete photos or entire jobs.
+The current milestone covers offline job and photo management plus matched Before/After capture. Users can create jobs, capture Before, Progress, and ordinary After photos, review and name captures, and store originals in app-private local storage. For repeatable Before/After angles, the After Shot Queue tracks every Before photo, the camera can overlay the selected Before at adjustable opacity, and the user reviews the resulting comparison before approving a persistent pair. Saved pairs can be viewed, replaced, or unpaired without deleting either photo by default.
 
-Ghost alignment, before/after pairing, gallery import, cloud sync, authentication, AI, captions, video generation, subscriptions, and content generation remain intentionally out of scope.
+Gallery import, cloud sync, authentication, AI guidance, captions, video generation, subscriptions, and marketing-content generation remain intentionally out of scope.
 
 ## Local media storage
 
-Photo metadata is stored separately from image files. Accepted image files are copied out of the temporary camera cache into the app-private document directory using `jobs/{jobId}/{stage}/{mediaId}.jpg|png`. Metadata drives galleries and counts. Changing a saved photo’s stage currently updates metadata without duplicating or moving the physical file; the URI remains valid and the photo appears only in its selected stage.
+Photo metadata is stored separately from image files. Accepted image files are copied out of the temporary camera cache into the app-private document directory using `jobs/{jobId}/{stage}/{mediaId}.jpg|png`. Metadata drives galleries and counts. Pair relationships are stored separately and reference one Before media ID and one After media ID from the same job. Deleting or moving paired media cleans up its relationship first. Changing a saved photo's stage updates metadata without duplicating or moving the physical file; the URI remains valid and the photo appears only in its selected stage.

@@ -1,70 +1,61 @@
-# Milestone 2 design QA
+# Matched After capture design QA
 
-## Comparison target
+## Evidence
 
-- Source visual truth:
-  - `C:\Users\Mitch\Downloads\image-gen-4.png` (Before / Progress / After gallery)
-  - `C:\Users\Mitch\Downloads\image-gen-1(1).png` (Capture Before camera)
-  - `C:\Users\Mitch\Downloads\image-gen-2(1).png` (Review Photo)
-- Browser-rendered implementation evidence: `S:\App Projects\before-after-app\design-qa-artifacts\stage-gallery-390x844.png`
-- Viewport: 390 x 844, with an additional overflow check at 320 x 700
-- Compared state: Johnson House Interior Repaint, Before gallery, zero saved photos
-
-The gallery mockup contains saved-photo cards while the acceptance flow explicitly requires a useful empty gallery. The comparison therefore evaluates the same gallery shell, hierarchy, navigation, segmented control, action placement, and visual language while treating the empty state as an intentional product state.
+- Source visual truth: `C:\Users\Mitch\Downloads\image-gen-3(1).png`
+- Browser-rendered implementation: `C:\Users\Mitch\.codex\visualizations\2026\07\12\019f57f9-9d89-7d12-8501-7991eb09bcf6\after-queue-empty-390x844.png`
+- Viewport: 390 x 844 CSS pixels
+- State: After Shot Queue for `Johnson House Interior Repaint`, with no Before photos yet
+- Source-state caveat: the rough reference shows a populated queue while the captured implementation shows the product's empty queue. The comparison therefore evaluates shared hierarchy, tokens, density, navigation, progress treatment, and the implementation-specific empty state without claiming row-by-row fidelity.
 
 ## Full-view comparison evidence
 
-The source and rendered screenshot were opened together and compared in the same visual pass.
+The source and implementation were opened together in one comparison input. Both use the same mobile hierarchy: back navigation and centered title, job summary, completion status, horizontal progress, queue content, a persistent blue primary action above the four-tab navigation, and a restrained blue/neutral palette. The implementation retains the existing JobToPost typography, icon family, spacing tokens, radii, and tab bar instead of copying the reference literally.
 
-- Typography: the implementation uses the existing native system-font stack with the same dark, high-weight title hierarchy and muted supporting text. The empty-state headline and bottom action remain readable at the target width.
-- Spacing and layout: the header, three-stage segmented control, content region, persistent bottom action, and tab bar follow the source's vertical order and generous spacing. The implementation uses Android safe-area-aware layout rather than the mockup's fake iPhone chrome.
-- Colors and tokens: the near-white background, dark text, muted gray labels, subtle borders, and bright blue selected/action states align with the source direction and the existing JobToPost tokens.
-- Image quality: the tested state intentionally has no user photo assets. The empty-state camera icon uses the existing Ionicons family; saved-photo items use real local image URIs rather than placeholders.
-- Copy and content: stage-specific count, empty-state copy, and `Take Before Photo` action clearly describe the next step. The copy is coherent without relying on the design prompt.
-- Responsiveness: at 320 px wide, `window.innerWidth`, `document.body.scrollWidth`, and `document.documentElement.scrollWidth` were all 320 px; no horizontal overflow was present.
+Required fidelity surfaces:
+
+- Fonts and typography: headings, labels, supporting copy, button text, wrapping, and weights remain legible and visually consistent with the existing app. The two-line job name wraps cleanly at 390 px.
+- Spacing and layout rhythm: page gutters, section gaps, empty-state card padding, sticky action, and tab-bar separation are balanced with no clipping or overlap.
+- Colors and visual tokens: brand blue, neutral page background, borders, muted text, and selected-tab state are coherent and preserve adequate visual hierarchy.
+- Image quality and asset fidelity: no job image exists in this empty state. The empty-state mark uses the app's installed icon family; no placeholder photo, custom SVG, CSS drawing, or emoji substitutes a source asset.
+- Copy and content: `Capture Before photos first` and its supporting text explain the prerequisite directly; the button label accurately describes the next action.
 
 ## Focused-region comparison evidence
 
-A separate crop was not needed because the segmented control, empty-state typography, primary action, and tab bar are all legible in the 390 x 844 implementation screenshot. The source and implementation show the same high-priority controls at full-view scale.
+A separate crop was not needed: the 390 x 844 native screenshot keeps the header, progress treatment, empty-state message, sticky CTA, and tab icons large enough to inspect together. The populated queue cards, live camera preview, and comparison imagery require real device media and are covered by implementation and device-flow testing rather than false visual precision against a different browser state.
 
 ## Primary interactions tested
 
-- Opened an existing job from Jobs Home.
-- Opened the Before gallery from the job dashboard.
-- Switched from Before to Progress in the shared segmented control.
-- Confirmed the route stage parameter, heading, count, empty-state message, and primary action all changed to Progress.
-- Confirmed the 320 px narrow layout has no horizontal overflow.
-- Checked captured browser console errors: none.
-
-The real camera preview and the post-capture Review Photo state are intentionally not simulated in the browser. Their remaining visual and hardware validation must be performed in Expo Go on the Pixel 6a so the implementation never substitutes a fake preview for the device camera.
+- Opened a job dashboard and navigated to Match After Photos.
+- Verified the zero-Before empty state and its `Add Before Photos` action.
+- Followed the action to the Before gallery.
+- Switched to the After gallery and verified both `Match Before Photos` and ordinary `Take After Photo` entry points.
+- Reloaded the app and checked the browser console; no runtime errors were present.
 
 ## Findings
 
-No actionable P0, P1, or P2 visual findings remain in the browser-verifiable gallery flow.
+- No actionable P0, P1, or P2 visual mismatches were found in the comparable state.
+- Residual test gap: a browser cannot provide representative Pixel camera imagery without a granted camera stream. Ghost-overlay composition, opacity interaction, retake, approval, replacement, and persisted pair recovery still need a final physical-device pass with real Before media.
 
-## Open questions and physical-device checks
+## Open questions
 
-- Verify camera permission grant, denial, retry, and Open Settings behavior in Expo Go.
-- Verify the live rear-camera preview, flash availability, camera switching, zoom, portrait/landscape rotation, capture, Review Photo, Retake, Use Photo, and Take Another on the Pixel 6a.
-- Verify accepted photos and metadata survive fully closing and reopening Expo Go.
+- None blocking. The supplied screenshots are rough direction rather than audited feature requirements, so the implementation deliberately follows the existing app's design system where the reference and current product differ.
 
 ## Comparison history
 
-- Initial pass: no actionable P0/P1/P2 gallery mismatch was found. No visual fix iteration was required.
-- Implementation hardening after the visual pass: Android hardware Back now only intercepts when a valid unsaved temporary capture exists, and saved metadata preserves the actual capture timestamp. Lint and TypeScript passed after these changes.
-
-## Follow-up polish
-
-- P3: the long real-world job name truncates in the compact gallery back label. This is an acceptable responsive tradeoff and preserves the centered stage title.
-- P3: the reference mockup shows a filter icon, but filtering is not part of Milestone 2 and was intentionally omitted.
+- Pass 1: no P0, P1, or P2 findings; no visual fixes were required. Post-pass evidence remains `after-queue-empty-390x844.png`.
 
 ## Implementation checklist
 
-- [x] Shared responsive stage gallery
-- [x] Stage-specific empty state and capture action
-- [x] Segmented stage switching
-- [x] Pixel-width and narrow-width browser checks
-- [x] No browser console errors in the verified flow
-- [x] Native camera/review verification explicitly deferred to physical hardware
+- [x] Shared mobile hierarchy and primary action preserved.
+- [x] Empty state explains the Before-photo prerequisite.
+- [x] Narrow mobile viewport has no overlap or clipped persistent controls.
+- [x] Core navigation and queue entry points work.
+- [x] Browser console is clear after reload.
+- [ ] Exercise the complete live-camera matched flow on a physical Android device.
+
+## Follow-up polish
+
+- None required for handoff.
 
 final result: passed

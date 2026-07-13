@@ -4,11 +4,18 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
 import { mediaRepository } from '@/repositories/async-storage-media-repository';
+import {
+  MatchedAfterService,
+  SaveMatchedAfterInput,
+  SaveMatchedAfterResult,
+} from '@/services/matched-after-service';
 import { mediaFileStorage } from '@/services/media-file-storage';
+import { usePairs } from '@/state/pairs-context';
 import {
   createEmptyMediaStageCounts,
   createMediaId,
@@ -17,7 +24,13 @@ import {
   MediaStage,
   MediaStageCounts,
 } from '@/types/media';
+import { BeforeAfterPair } from '@/types/pair';
 import { getOrientation } from '@/utils/media-stage';
+
+export type {
+  SaveMatchedAfterInput,
+  SaveMatchedAfterResult,
+} from '@/services/matched-after-service';
 
 type SaveCapturedPhotoInput = {
   tempUri: string;
@@ -40,6 +53,7 @@ type MediaContextValue = {
   refreshJobs: (jobIds: string[]) => Promise<void>;
   getMedia: (id: string) => Promise<JobMedia | undefined>;
   saveCapturedPhoto: (input: SaveCapturedPhotoInput) => Promise<JobMedia>;
+  saveMatchedAfter: (input: SaveMatchedAfterInput) => Promise<SaveMatchedAfterResult>;
   updateMedia: (id: string, input: JobMediaUpdateInput) => Promise<JobMedia | undefined>;
   deleteMedia: (id: string) => Promise<boolean>;
   removeJobMedia: (jobId: string) => Promise<void>;
@@ -59,9 +73,21 @@ function userMessage(caughtError: unknown, fallback: string): string {
 }
 
 export function MediaProvider({ children }: PropsWithChildren) {
+  const {
+    getPair,
+    findPairForBefore,
+    findPairForAfter,
+    createPair,
+    replaceAfterMedia,
+    deletePairsForMedia,
+    deletePairsForJob,
+    refreshJobPairs,
+    restorePairs,
+  } = usePairs();
   const [media, setMedia] = useState<JobMedia[]>([]);
   const [loadingJobIds, setLoadingJobIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string>();
+  const matchedAfterInFlight = useRef<Set<string>>(new Set());
 
   const setJobLoading = useCallback((jobId: string, loading: boolean) => {
     setLoadingJobIds((current) => {
@@ -145,35 +171,117 @@ export function MediaProvider({ children }: PropsWithChildren) {
     }
   }, []);
 
+  const saveMatchedAfter = useCallback(async (input: SaveMatchedAfterInput) => {
+    const transactionKey = input.replacePairId ?? input.beforeMediaId;
+    if (matchedAfterInFlight.current.has(transactionKey)) {
+      throw new Error('This After photo is already being saved.');
+    }
+
+    matchedAfterInFlight.current.add(transactionKey);
+
+    try {
+      const service = new MatchedAfterService({
+        mediaRepository,
+        mediaFileStorage,
+        getPair,
+        createPair,
+        replaceAfterMedia,
+        warn: (message, cleanupError) => console.warn(message, cleanupError),
+      });
+      const result = await service.save(input);
+      setMedia((current) => [
+        result.after,
+        ...current.filter((item) => item.id !== result.after.id),
+      ]);
+      return result;
+    } finally {
+      matchedAfterInFlight.current.delete(transactionKey);
+    }
+  }, [createPair, getPair, replaceAfterMedia]);
+
+  const pairsForMedia = useCallback(async (mediaId: string) => {
+    const records = await Promise.all([
+      findPairForBefore(mediaId),
+      findPairForAfter(mediaId),
+    ]);
+    return [...new Map(records.filter((pair) => pair !== undefined).map((pair) => [pair.id, pair])).values()];
+  }, [findPairForAfter, findPairForBefore]);
+
   const updateMedia = useCallback(async (id: string, input: JobMediaUpdateInput) => {
-    const updated = await mediaRepository.updateMedia(id, input);
+    let removedPairs: BeforeAfterPair[] = [];
+    if (input.stage !== undefined) {
+      const existing = await mediaRepository.getMedia(id);
+      if (existing && input.stage !== existing.stage) {
+        removedPairs = await pairsForMedia(id);
+        await deletePairsForMedia(id);
+      }
+    }
+    let updated: JobMedia | undefined;
+    try {
+      updated = await mediaRepository.updateMedia(id, input);
+    } catch (caughtError) {
+      if (removedPairs.length > 0 && (await mediaRepository.getMedia(id))) {
+        await restorePairs(removedPairs);
+      }
+      throw caughtError;
+    }
+    if (!updated && removedPairs.length > 0 && (await mediaRepository.getMedia(id))) {
+      await restorePairs(removedPairs);
+    }
     if (updated) {
       setMedia((current) => current.map((item) => (item.id === updated.id ? updated : item)));
     }
     return updated;
-  }, []);
+  }, [deletePairsForMedia, pairsForMedia, restorePairs]);
 
   const deleteMedia = useCallback(async (id: string) => {
     const existing = await mediaRepository.getMedia(id);
     if (!existing) return false;
 
-    const deleted = await mediaRepository.deleteMedia(id);
-    if (!deleted) return false;
+    const removedPairs = await pairsForMedia(id);
+    await deletePairsForMedia(id);
+    let deleted: boolean;
+    try {
+      deleted = await mediaRepository.deleteMedia(id);
+    } catch (caughtError) {
+      if (removedPairs.length > 0 && (await mediaRepository.getMedia(id))) {
+        await restorePairs(removedPairs);
+      }
+      throw caughtError;
+    }
+    if (!deleted) {
+      if (removedPairs.length > 0 && (await mediaRepository.getMedia(id))) {
+        await restorePairs(removedPairs);
+      }
+      return false;
+    }
 
     setMedia((current) => current.filter((item) => item.id !== id));
     await mediaFileStorage.deleteMediaFile(existing.localUri).catch((cleanupError) => {
       console.warn('A deleted photo file could not be cleaned up.', cleanupError);
     });
     return true;
-  }, []);
+  }, [deletePairsForMedia, pairsForMedia, restorePairs]);
 
   const removeJobMedia = useCallback(async (jobId: string) => {
-    await mediaRepository.deleteMediaForJob(jobId);
+    const removedPairs = await refreshJobPairs(jobId);
+    await deletePairsForJob(jobId);
+    try {
+      await mediaRepository.deleteMediaForJob(jobId);
+    } catch (caughtError) {
+      const remaining = await mediaRepository.listMediaForJob(jobId);
+      const remainingIds = new Set(remaining.map((item) => item.id));
+      const validPairs = removedPairs.filter(
+        (pair) => remainingIds.has(pair.beforeMediaId) && remainingIds.has(pair.afterMediaId),
+      );
+      if (validPairs.length > 0) await restorePairs(validPairs);
+      throw caughtError;
+    }
     setMedia((current) => current.filter((item) => item.jobId !== jobId));
     await mediaFileStorage.deleteJobMediaDirectory(jobId).catch((cleanupError) => {
       console.warn('Some deleted job photos could not be cleaned up.', cleanupError);
     });
-  }, []);
+  }, [deletePairsForJob, refreshJobPairs, restorePairs]);
 
   const countsForJob = useCallback(
     (jobId: string) => {
@@ -201,6 +309,7 @@ export function MediaProvider({ children }: PropsWithChildren) {
       refreshJobs,
       getMedia,
       saveCapturedPhoto,
+      saveMatchedAfter,
       updateMedia,
       deleteMedia,
       removeJobMedia,
@@ -216,6 +325,7 @@ export function MediaProvider({ children }: PropsWithChildren) {
       refreshJobs,
       getMedia,
       saveCapturedPhoto,
+      saveMatchedAfter,
       updateMedia,
       deleteMedia,
       removeJobMedia,

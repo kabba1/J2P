@@ -3,6 +3,7 @@ import { createContext, PropsWithChildren, useCallback, useContext, useEffect, u
 import { jobRepository } from '@/repositories/async-storage-job-repository';
 import { mediaRepository } from '@/repositories/async-storage-media-repository';
 import { mediaFileStorage } from '@/services/media-file-storage';
+import { usePairs } from '@/state/pairs-context';
 import { Job, JobInput } from '@/types/job';
 
 type JobsContextValue = {
@@ -22,6 +23,7 @@ function sortJobs(jobs: Job[]): Job[] {
 }
 
 export function JobsProvider({ children }: PropsWithChildren) {
+  const { deletePairsForJob, refreshJobPairs, restorePairs } = usePairs();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
@@ -59,7 +61,21 @@ export function JobsProvider({ children }: PropsWithChildren) {
   }, []);
 
   const deleteJob = useCallback(async (id: string) => {
-    const deleted = await jobRepository.deleteJob(id);
+    if (!(await jobRepository.getJob(id))) return false;
+    const removedPairs = await refreshJobPairs(id);
+    await deletePairsForJob(id);
+    let deleted: boolean;
+    try {
+      deleted = await jobRepository.deleteJob(id);
+    } catch (caughtError) {
+      if (removedPairs.length > 0 && (await jobRepository.getJob(id))) {
+        await restorePairs(removedPairs);
+      }
+      throw caughtError;
+    }
+    if (!deleted && removedPairs.length > 0 && (await jobRepository.getJob(id))) {
+      await restorePairs(removedPairs);
+    }
     if (deleted) {
       setJobs((current) => current.filter((job) => job.id !== id));
       await mediaRepository.deleteMediaForJob(id).catch((cleanupError) => {
@@ -70,7 +86,7 @@ export function JobsProvider({ children }: PropsWithChildren) {
       });
     }
     return deleted;
-  }, []);
+  }, [deletePairsForJob, refreshJobPairs, restorePairs]);
 
   const value = useMemo(
     () => ({ jobs, loading, error, refresh, createJob, updateJob, deleteJob }),

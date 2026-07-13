@@ -6,21 +6,25 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { JobsProvider } from '@/state/jobs-context';
 import { MediaProvider } from '@/state/media-context';
+import { PairsProvider } from '@/state/pairs-context';
 
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider value={DefaultTheme}>
-        <MediaProvider>
-          <JobsProvider>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="job-camera" />
-              <Stack.Screen name="review" />
-            </Stack>
-            <StatusBar style="dark" />
-          </JobsProvider>
-        </MediaProvider>
+        <PairsProvider>
+          <MediaProvider>
+            <JobsProvider>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="job-camera" />
+                <Stack.Screen name="review" />
+                <Stack.Screen name="pair-review" />
+              </Stack>
+              <StatusBar style="dark" />
+            </JobsProvider>
+          </MediaProvider>
+        </PairsProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

@@ -8,7 +8,10 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test": "npm run test:pairs && npm run test:matched-after",
+    "test:pairs": "node --test tests/async-storage-pair-repository.test.cjs",
+    "test:matched-after": "node --test tests/matched-after-service.test.cjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
