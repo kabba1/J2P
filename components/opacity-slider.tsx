@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   touchTarget: {
-    height: 34,
+    height: 48,
     justifyContent: 'center',
   },
   track: {

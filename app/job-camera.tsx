@@ -86,6 +86,7 @@ export default function JobCameraScreen() {
   const [beforeError, setBeforeError] = useState<string>();
   const [ghostEnabled, setGhostEnabled] = useState(true);
   const [ghostOpacity, setGhostOpacity] = useState(0.5);
+  const [ghostControlsExpanded, setGhostControlsExpanded] = useState(false);
 
   useEffect(() => {
     void cameraService
@@ -103,6 +104,10 @@ export default function JobCameraScreen() {
       void requestPermission();
     }
   }, [permission?.status, requestPermission]);
+
+  useEffect(() => {
+    setGhostControlsExpanded(false);
+  }, [beforeMediaId, isMatchedCapture]);
 
   useEffect(() => {
     if (!isMatchedCapture) {
@@ -358,7 +363,7 @@ export default function JobCameraScreen() {
   const zoomLabel = `${(1 + zoom * 4).toFixed(1).replace('.0', '')}×`;
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={styles.cameraScreen}>
+    <SafeAreaView edges={['top', 'right', 'bottom', 'left']} style={styles.cameraScreen}>
       <StatusBar style="dark" />
       <View style={styles.cameraHeader}>
         <Pressable
@@ -426,11 +431,11 @@ export default function JobCameraScreen() {
               {job.serviceType}
             </Text>
           ) : null}
-          <View style={styles.stageBadge}>
-            <Text style={styles.stageBadgeText}>
-              {isMatchedCapture ? 'Align with Before' : `${label} photo`}
-            </Text>
-          </View>
+          {!isMatchedCapture ? (
+            <View style={styles.stageBadge}>
+              <Text style={styles.stageBadgeText}>{label} photo</Text>
+            </View>
+          ) : null}
         </View>
 
         <View style={[styles.sideControls, landscape && styles.sideControlsLandscape]}>
@@ -468,23 +473,69 @@ export default function JobCameraScreen() {
         </View>
 
         {isMatchedCapture ? (
-          <View style={[styles.ghostPanel, landscape && styles.ghostPanelLandscape]}>
-            <View style={styles.ghostToggleRow}>
-              <Text style={styles.ghostToggleLabel}>Ghost overlay</Text>
-              <Switch
-                accessibilityLabel="Toggle Before photo ghost overlay"
-                onValueChange={setGhostEnabled}
-                thumbColor={Colors.surface}
-                trackColor={{ false: '#5E6672', true: Colors.primary }}
-                value={ghostEnabled}
+          ghostControlsExpanded ? (
+            <View style={[styles.ghostPanel, landscape && styles.ghostPanelLandscape]}>
+              <View style={styles.ghostToggleRow}>
+                <View style={styles.ghostToggleTitle}>
+                  <Ionicons name="layers-outline" size={20} color={Colors.surface} />
+                  <Text style={styles.ghostToggleLabel}>Ghost overlay</Text>
+                </View>
+                <Switch
+                  accessibilityLabel="Toggle Before photo ghost overlay"
+                  accessibilityState={{ checked: ghostEnabled }}
+                  onValueChange={setGhostEnabled}
+                  thumbColor={Colors.surface}
+                  trackColor={{ false: '#5E6672', true: Colors.primary }}
+                  value={ghostEnabled}
+                />
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Ghost overlay controls"
+                  accessibilityHint="Collapses the controls to show more of the camera preview"
+                  accessibilityState={{ expanded: true }}
+                  accessibilityValue={{
+                    text: ghostEnabled ? `${Math.round(ghostOpacity * 100)} percent` : 'off',
+                  }}
+                  onPress={() => setGhostControlsExpanded(false)}
+                  style={({ pressed }) => [
+                    styles.ghostCollapseButton,
+                    pressed && styles.pressed,
+                  ]}>
+                  <Ionicons name="chevron-down" size={22} color={Colors.surface} />
+                </Pressable>
+              </View>
+              <OpacitySlider
+                disabled={!ghostEnabled}
+                onChange={setGhostOpacity}
+                value={ghostOpacity}
               />
             </View>
-            <OpacitySlider
-              disabled={!ghostEnabled}
-              onChange={setGhostOpacity}
-              value={ghostOpacity}
-            />
-          </View>
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Ghost overlay controls"
+              accessibilityHint="Expands the ghost overlay switch and opacity slider"
+              accessibilityState={{ expanded: false }}
+              accessibilityValue={{
+                text: ghostEnabled ? `${Math.round(ghostOpacity * 100)} percent` : 'off',
+              }}
+              onPress={() => setGhostControlsExpanded(true)}
+              style={({ pressed }) => [
+                styles.ghostCompactButton,
+                landscape && styles.ghostCompactButtonLandscape,
+                pressed && styles.pressed,
+              ]}>
+              <Ionicons
+                name={ghostEnabled ? 'layers' : 'layers-outline'}
+                size={21}
+                color={Colors.surface}
+              />
+              <Text style={styles.ghostCompactText}>
+                {ghostEnabled ? `${Math.round(ghostOpacity * 100)}%` : 'Off'}
+              </Text>
+              <Ionicons name="chevron-up" size={18} color={Colors.surface} />
+            </Pressable>
+          )
         ) : null}
       </View>
 
@@ -644,13 +695,48 @@ const styles = StyleSheet.create({
   ghostToggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Spacing.md,
+    gap: Spacing.sm,
+  },
+  ghostToggleTitle: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
   ghostToggleLabel: {
     color: Colors.surface,
     fontSize: 14,
     fontWeight: '700',
+  },
+  ghostCollapseButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+  },
+  ghostCompactButton: {
+    position: 'absolute',
+    right: Spacing.lg,
+    bottom: Spacing.lg,
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.pill,
+    backgroundColor: 'rgba(17,17,17,0.82)',
+  },
+  ghostCompactButtonLandscape: {
+    right: Spacing.md,
+    bottom: Spacing.sm,
+  },
+  ghostCompactText: {
+    color: Colors.surface,
+    fontSize: 14,
+    fontWeight: '800',
+    fontVariant: ['tabular-nums'],
   },
   roundControl: {
     width: 54,

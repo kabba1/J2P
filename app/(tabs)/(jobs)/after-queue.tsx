@@ -20,6 +20,7 @@ import { useMedia } from '@/state/media-context';
 import { usePairs } from '@/state/pairs-context';
 import { JobMedia } from '@/types/media';
 import { BeforeAfterPair } from '@/types/pair';
+import { getAfterQueuePrimaryAction, selectLatestPair } from '@/utils/after-queue-state';
 import { formatDateTime } from '@/utils/format-date';
 
 type QueueItemProps = {
@@ -273,6 +274,13 @@ export default function AfterShotQueueScreen() {
   const nextUnmatched = beforeMedia.find(
     (before) => !pairByBeforeId.has(before.id) && !missingMediaIds.has(before.id),
   );
+  const latestPair = selectLatestPair(jobPairs);
+  const primaryAction = getAfterQueuePrimaryAction({
+    total,
+    remaining,
+    hasNextUnmatched: Boolean(nextUnmatched),
+    hasSavedPair: Boolean(latestPair),
+  });
 
   const openCamera = useCallback(
     (before: JobMedia) => {
@@ -443,29 +451,35 @@ export default function AfterShotQueueScreen() {
       />
 
       <View style={styles.bottomAction}>
-        {total === 0 ? (
-          <PrimaryButton
-            label="Add Before Photos"
-            icon="camera"
-            onPress={openBeforeGallery}
-          />
-        ) : (
-          <PrimaryButton
-            label="Start Next After Shot"
-            icon="camera"
-            disabled={!nextUnmatched}
-            accessibilityHint={
-              nextUnmatched
+        <PrimaryButton
+          label={primaryAction.label}
+          icon={
+            primaryAction.kind === 'view-pair'
+              ? 'images-outline'
+              : primaryAction.kind === 'unavailable'
+                ? 'alert-circle-outline'
+                : 'camera'
+          }
+          disabled={primaryAction.disabled}
+          accessibilityHint={
+            primaryAction.kind === 'add-before'
+              ? 'Opens this job’s Before gallery so you can add source photos.'
+              : primaryAction.kind === 'start-next'
                 ? 'Opens the first unmatched Before photo in the ghost alignment camera.'
-                : remaining === 0
-                  ? 'Every Before photo has a matched After photo.'
+                : primaryAction.kind === 'view-pair'
+                  ? 'Opens the most recently saved Before and After comparison.'
                   : 'The remaining Before photo files are unavailable.'
+          }
+          onPress={() => {
+            if (primaryAction.kind === 'add-before') {
+              openBeforeGallery();
+            } else if (primaryAction.kind === 'start-next' && nextUnmatched) {
+              openCamera(nextUnmatched);
+            } else if (primaryAction.kind === 'view-pair' && latestPair) {
+              openPair(latestPair);
             }
-            onPress={() => {
-              if (nextUnmatched) openCamera(nextUnmatched);
-            }}
-          />
-        )}
+          }}
+        />
       </View>
     </ScreenContainer>
   );

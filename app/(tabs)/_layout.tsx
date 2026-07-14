@@ -1,8 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
+import { getTabBarLayout } from '@/utils/tab-bar-layout';
 
 type TabIconProps = {
   color: string;
@@ -10,6 +12,9 @@ type TabIconProps = {
 };
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  const tabBarLayout = getTabBarLayout(insets.bottom);
+
   return (
     <Tabs
       initialRouteName="(jobs)"
@@ -20,8 +25,9 @@ export default function TabLayout() {
         tabBarButton: HapticTab,
         tabBarLabelStyle: { fontSize: 12, fontWeight: '600' },
         tabBarStyle: {
-          minHeight: 64,
+          height: tabBarLayout.height,
           paddingTop: 7,
+          paddingBottom: tabBarLayout.paddingBottom,
           borderTopColor: Colors.border,
           backgroundColor: Colors.surface,
         },

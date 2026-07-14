@@ -130,6 +130,14 @@ job, photos, pair, and post. Detailed edge and quality checks remain open.
 - [ ] Crash reporting is configured
 - [ ] Support email is visible in Settings
 
+### Field-usability Pixel pass
+
+- [ ] Bottom tabs remain fully above gesture and three-button navigation in portrait and landscape
+- [ ] TalkBack announces Ghost overlay controls as collapsed and expanded, and the slider remains adjustable
+- [ ] A completed After queue opens the newest saved Before/After pair
+- [ ] Every gallery photo exposes Manage, and edit/delete still work from photo detail
+- [ ] Job options stay collapsed by default; Archive, Restore, and their failure messages remain discoverable
+
 ## Deferred after Android V1
 
 These are roadmap ideas, not launch blockers:
@@ -143,6 +151,8 @@ These are roadmap ideas, not launch blockers:
 
 ## Google Play Launch
 
+- [x] EAS project and Android preview-build profiles configured
+- [x] Preview APK installed and audited on the Pixel 6a
 - [ ] Google Play developer account
 - [ ] Production Android App Bundle
 - [ ] App icon and adaptive icon

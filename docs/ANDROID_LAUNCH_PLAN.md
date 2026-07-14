@@ -42,18 +42,21 @@ Checkpoint evidence:
 
 - `npm run lint` passes
 - `npx tsc --noEmit` passes
-- `npm test` passes all 121 tests
+- `npm test` passes all 130 tests
 - `npx expo-doctor` passes 18/18 checks
 - The complete Pixel 6a golden path was confirmed on 2026-07-13: job creation,
   Before/Progress capture, ghost-aligned After approval, post generation, Save
   to Photos, Android sharing, and force-close/reopen persistence
+- EAS project `@kabba94/jobtopost` is linked, Android package
+  `com.kabba1.jobtopost` is configured, and a production-like preview APK was
+  installed and audited on the Pixel 6a
 
 Remaining risk:
 
 - Detailed output-quality, permission-denial, stress, deletion, archive/search,
   keyboard, narrow-layout, and navigation device cases remain open
-- There is no EAS configuration, permanent Android package ID, standalone build,
-  billing, crash reporting, gallery import, job backup, or Play listing
+- There is no production AAB, Play upload, billing, crash reporting, gallery
+  import, job backup, or Play listing
 
 Passing local checks proves code health; it does not prove camera, storage,
 permissions, rendering, billing, update safety, or real-job usability.
@@ -172,18 +175,19 @@ Package IDs are permanent in Play. Do not upload a placeholder identity.
 
 ### Engineering work
 
-- Create an Expo account/project for JobToPost
-- Add a permanent `android.package` and explicit versioning
-- Add `eas.json` profiles:
+- [x] Create and link Expo project `@kabba94/jobtopost`
+- [x] Add Android package `com.kabba1.jobtopost` and explicit versioning
+- [x] Add `eas.json` profiles:
   - development: development client, installable APK
   - preview: production-like internal APK
   - production: signed AAB with automatic version-code increments
-- Move routine native testing from Expo Go to a standalone development/preview
-  build; keep Expo Go only for quick compatible smoke tests
-- Keep the managed workflow and do not commit native `android` or `ios` folders
-- Add CI for lint, tests, type-check, Expo Doctor, and diff checks
-- Build and install the preview APK on the Pixel
-- Build a production AAB and upload it to Play internal testing manually once
+- [x] Use Expo Go for rapid compatible JavaScript and UI iteration; create
+  preview APKs at meaningful checkpoints, after native/config changes, and for
+  tester handoff rather than rebuilding after every edit
+- [x] Keep the managed workflow and do not commit native `android` or `ios` folders
+- [ ] Add CI for lint, tests, type-check, Expo Doctor, and diff checks
+- [x] Build and install the preview APK on the Pixel
+- [ ] Build a production AAB and upload it to Play internal testing manually once
 - Verify the uploaded artifact:
   - Expo SDK 54's API 36 compile/target configuration and Android 7+ support
   - Play's rolling target-API requirement, checked again immediately before
@@ -669,20 +673,20 @@ before adding a larger feature set.
 
 ## Immediate execution queue
 
-1. Preserve, review, test, commit, and push the current Milestone 4/5 work.
+1. Finish the first field-usability polish sprint through Expo Go and verify it
+   on the Pixel 6a without producing another checkpoint APK.
 2. Complete the remaining Pixel 6a Milestone 4 edge-case and Milestone 5 device
    checks.
 3. Run product-name/store/trademark checks, then choose Play account ownership,
-   product domain/support email, and permanent package ID.
-4. Configure EAS development, preview, and production profiles.
-5. Produce a standalone preview APK and production AAB.
-6. Upload the first AAB to Play internal testing and audit its manifest and
-   compatibility reports.
-7. Write the detailed data-safety/backup milestone spec.
-8. Implement system-picker import, original export, safety copies, and
+   product domain, and public support email before the first Play upload.
+4. Produce the first production AAB, upload it to Play internal testing, and
+   audit its manifest and compatibility reports.
+5. Write the detailed data-safety/backup milestone spec.
+6. Implement system-picker import, original export, safety copies, and
    versioned backup/restore.
-9. Add one reusable business profile and apply it to static posts.
-10. Run the founder alpha before expanding feature scope.
+7. Add one reusable business profile and apply it to static posts.
+8. Add CI, privacy/support surfaces, crash reporting, and billing.
+9. Run the founder alpha before expanding feature scope.
 
 ## Timeline expectation
 
@@ -695,7 +699,7 @@ evidence.
 
 Critical path:
 
-> Preserve current work -> establish standalone builds -> secure customer media
+> Preserve current work -> audit the production AAB -> secure customer media
 > -> finish the narrow branded-post promise -> founder alpha -> harden the real
 > workflow -> billing -> closed beta and store readiness -> staged Android launch
 

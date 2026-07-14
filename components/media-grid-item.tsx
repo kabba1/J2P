@@ -10,42 +10,51 @@ type MediaGridItemProps = {
   media: JobMedia;
   missing?: boolean;
   onPress: () => void;
-  onLongPress: () => void;
+  onManage: () => void;
 };
 
-export function MediaGridItem({ media, missing = false, onPress, onLongPress }: MediaGridItemProps) {
+export function MediaGridItem({ media, missing = false, onPress, onManage }: MediaGridItemProps) {
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`Open ${media.shotName || 'photo'}`}
-      accessibilityHint="Long press to delete this photo"
-      delayLongPress={450}
-      onLongPress={onLongPress}
-      onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
-      {missing ? (
-        <View style={styles.missing}>
-          <Ionicons name="image-outline" size={34} color={Colors.textMuted} />
-          <Text style={styles.missingText}>Photo file missing</Text>
-        </View>
-      ) : (
-        <Image
-          accessibilityLabel={media.shotName || 'Job photo'}
-          cachePolicy="memory-disk"
-          contentFit="cover"
-          recyclingKey={media.id}
-          source={{ uri: media.localUri }}
-          style={styles.image}
-          transition={120}
-        />
-      )}
+    <View style={styles.card}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Open ${media.shotName || 'photo'}`}
+        accessibilityHint="Opens this photo’s details"
+        onPress={onPress}
+        style={({ pressed }) => pressed && styles.pressed}>
+        {missing ? (
+          <View style={styles.missing}>
+            <Ionicons name="image-outline" size={34} color={Colors.textMuted} />
+            <Text style={styles.missingText}>Photo file missing</Text>
+          </View>
+        ) : (
+          <Image
+            accessibilityLabel={media.shotName || 'Job photo'}
+            cachePolicy="memory-disk"
+            contentFit="cover"
+            recyclingKey={media.id}
+            source={{ uri: media.localUri }}
+            style={styles.image}
+            transition={120}
+          />
+        )}
+      </Pressable>
       <View style={styles.meta}>
         <Text numberOfLines={1} style={styles.title}>
           {media.shotName || 'Untitled photo'}
         </Text>
         <Text style={styles.date}>{formatDate(media.createdAt)}</Text>
       </View>
-    </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Manage ${media.shotName || 'photo'}`}
+        accessibilityHint="Opens editing and deletion options"
+        onPress={onManage}
+        style={({ pressed }) => [styles.manageButton, pressed && styles.managePressed]}>
+        <Ionicons name="ellipsis-horizontal" size={18} color={Colors.primary} />
+        <Text style={styles.manageLabel}>Manage</Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -100,5 +109,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     marginTop: 2,
+  },
+  manageButton: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  managePressed: {
+    backgroundColor: Colors.primarySoft,
+  },
+  manageLabel: {
+    color: Colors.primary,
+    fontSize: 13,
+    fontWeight: '800',
   },
 });

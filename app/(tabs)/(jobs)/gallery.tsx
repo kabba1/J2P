@@ -15,11 +15,10 @@ import { MediaGridItem } from '@/components/media-grid-item';
 import { StageSegmentedControl } from '@/components/stage-segmented-control';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { ScreenContainer } from '@/components/ui/screen-container';
-import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { useJobs } from '@/state/jobs-context';
 import { useMedia } from '@/state/media-context';
-import { JobMedia, MediaStage } from '@/types/media';
+import { MediaStage } from '@/types/media';
 import { isMediaStage, stageCaptureLabel, stageLabel } from '@/utils/media-stage';
 
 export default function StageGalleryScreen() {
@@ -39,13 +38,9 @@ export default function StageGalleryScreen() {
     loadingJobIds,
     error,
     refreshJob,
-    deleteMedia,
     fileExists,
   } = useMedia();
   const [missingIds, setMissingIds] = useState<Set<string>>(new Set());
-  const [pendingDelete, setPendingDelete] = useState<JobMedia>();
-  const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string>();
   const job = jobs.find((candidate) => candidate.id === rawJobId);
 
   const refreshGallery = useCallback(async () => {
@@ -86,22 +81,6 @@ export default function StageGalleryScreen() {
   const openAfterQueue = () => {
     if (!rawJobId) return;
     router.push({ pathname: '/after-queue', params: { jobId: rawJobId } });
-  };
-
-  const handleDelete = async () => {
-    if (!pendingDelete) return;
-    setDeleting(true);
-    setDeleteError(undefined);
-    try {
-      await deleteMedia(pendingDelete.id);
-      setPendingDelete(undefined);
-    } catch (caughtError) {
-      setDeleteError(
-        caughtError instanceof Error ? caughtError.message : 'The photo could not be deleted.',
-      );
-    } finally {
-      setDeleting(false);
-    }
   };
 
   if ((!rawJobId || !stage || !job) && !jobsLoading) {
@@ -159,7 +138,9 @@ export default function StageGalleryScreen() {
             <MediaGridItem
               media={item}
               missing={missingIds.has(item.id)}
-              onLongPress={() => setPendingDelete(item)}
+              onManage={() =>
+                router.push({ pathname: '/media', params: { mediaId: item.id, jobId: job.id } })
+              }
               onPress={() =>
                 router.push({ pathname: '/media', params: { mediaId: item.id, jobId: job.id } })
               }
@@ -173,18 +154,12 @@ export default function StageGalleryScreen() {
               <Text style={styles.countLabel}>
                 {stageMedia.length} {label} {stageMedia.length === 1 ? 'photo' : 'photos'}
               </Text>
-              <Text style={styles.longPressHint}>Long press a photo to delete</Text>
+              <Text style={styles.manageHint}>Tap a photo to view or manage</Text>
             </View>
             {error ? (
               <View accessibilityRole="alert" style={styles.errorBanner}>
                 <Ionicons name="alert-circle-outline" size={20} color={Colors.danger} />
                 <Text style={styles.errorText}>{error}</Text>
-              </View>
-            ) : null}
-            {deleteError ? (
-              <View accessibilityRole="alert" style={styles.errorBanner}>
-                <Ionicons name="alert-circle-outline" size={20} color={Colors.danger} />
-                <Text style={styles.errorText}>{deleteError}</Text>
               </View>
             ) : null}
           </View>
@@ -216,17 +191,6 @@ export default function StageGalleryScreen() {
         ) : null}
         <PrimaryButton label={stageCaptureLabel(stage)} icon="camera" onPress={openCamera} />
       </View>
-
-      <ConfirmDialog
-        visible={Boolean(pendingDelete)}
-        title="Delete photo?"
-        message="This photo and its saved file will be removed from this device."
-        confirmLabel="Delete"
-        destructive
-        busy={deleting}
-        onCancel={() => setPendingDelete(undefined)}
-        onConfirm={() => void handleDelete()}
-      />
     </ScreenContainer>
   );
 }
@@ -285,7 +249,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-  longPressHint: {
+  manageHint: {
     flexShrink: 1,
     color: Colors.textMuted,
     fontSize: 11,

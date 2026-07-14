@@ -66,6 +66,7 @@ export default function JobDashboardScreen() {
   const [archiveVisible, setArchiveVisible] = useState(false);
   const [lifecycleBusy, setLifecycleBusy] = useState(false);
   const [lifecycleError, setLifecycleError] = useState<string>();
+  const [jobOptionsExpanded, setJobOptionsExpanded] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -129,6 +130,7 @@ export default function JobDashboardScreen() {
       const archived = await archiveJob(job.id);
       if (!archived) {
         setLifecycleError('The job could not be archived. Please try again.');
+        setArchiveVisible(false);
         return;
       }
       setArchiveVisible(false);
@@ -210,6 +212,29 @@ export default function JobDashboardScreen() {
               <Text style={styles.archivedMessage}>
                 Every original photo, saved pair, and generated post is still here. Restore this job to return it to Active.
               </Text>
+              {lifecycleError ? (
+                <View accessibilityRole="alert" style={styles.lifecycleError}>
+                  <Ionicons name="alert-circle-outline" size={20} color={Colors.danger} />
+                  <Text style={styles.lifecycleErrorText}>{lifecycleError}</Text>
+                </View>
+              ) : null}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Restore job"
+                accessibilityState={{ busy: lifecycleBusy, disabled: lifecycleBusy }}
+                disabled={lifecycleBusy}
+                onPress={() => void handleRestore()}
+                style={({ pressed }) => [
+                  styles.restoreButton,
+                  pressed && !lifecycleBusy && styles.generatedPressed,
+                ]}>
+                {lifecycleBusy ? (
+                  <ActivityIndicator color={Colors.primary} size="small" />
+                ) : (
+                  <Ionicons name="refresh-outline" size={19} color={Colors.primary} />
+                )}
+                <Text style={styles.restoreButtonLabel}>Restore Job</Text>
+              </Pressable>
             </View>
           </View>
         ) : null}
@@ -361,33 +386,54 @@ export default function JobDashboardScreen() {
           onPress={() => openGallery('before')}
         />
 
-        <View style={styles.dangerZone}>
-          <Text style={styles.dangerTitle}>Job actions</Text>
-          {lifecycleError ? (
+        <View style={styles.jobOptionsSection}>
+          {!job.archivedAt && lifecycleError ? (
             <View accessibilityRole="alert" style={styles.lifecycleError}>
               <Ionicons name="alert-circle-outline" size={20} color={Colors.danger} />
               <Text style={styles.lifecycleErrorText}>{lifecycleError}</Text>
             </View>
           ) : null}
-          <PrimaryButton
-            label={job.archivedAt ? 'Restore Job' : 'Archive Job'}
-            icon={job.archivedAt ? 'refresh-outline' : 'archive-outline'}
-            loading={lifecycleBusy}
-            onPress={
-              job.archivedAt
-                ? () => void handleRestore()
-                : () => {
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Job options"
+            accessibilityHint="Shows archive and delete actions"
+            accessibilityState={{ expanded: jobOptionsExpanded }}
+            onPress={() => setJobOptionsExpanded((current) => !current)}
+            style={({ pressed }) => [
+              styles.jobOptionsToggle,
+              pressed && styles.generatedPressed,
+            ]}>
+            <View style={styles.jobOptionsToggleLabel}>
+              <Ionicons name="ellipsis-horizontal-circle-outline" size={22} color={Colors.textMuted} />
+              <Text style={styles.jobOptionsText}>Job options</Text>
+            </View>
+            <Ionicons
+              name={jobOptionsExpanded ? 'chevron-up' : 'chevron-down'}
+              size={22}
+              color={Colors.textMuted}
+            />
+          </Pressable>
+          {jobOptionsExpanded ? (
+            <View style={styles.jobOptionsPanel}>
+              {!job.archivedAt ? (
+                <PrimaryButton
+                  label="Archive Job"
+                  icon="archive-outline"
+                  loading={lifecycleBusy}
+                  onPress={() => {
                     setLifecycleError(undefined);
                     setArchiveVisible(true);
-                  }
-            }
-          />
-          <PrimaryButton
-            label="Delete Job"
-            icon="trash-outline"
-            onPress={confirmDelete}
-            style={styles.deleteButton}
-          />
+                  }}
+                />
+              ) : null}
+              <PrimaryButton
+                label="Delete Job"
+                icon="trash-outline"
+                onPress={confirmDelete}
+                style={styles.deleteButton}
+              />
+            </View>
+          ) : null}
         </View>
       </ScrollView>
       <ConfirmDialog
@@ -523,6 +569,25 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     fontSize: 13,
     lineHeight: 19,
+  },
+  restoreButton: {
+    minHeight: 44,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surface,
+    marginTop: Spacing.sm,
+  },
+  restoreButtonLabel: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '800',
   },
   detailsCard: {
     borderRadius: Radius.md,
@@ -742,16 +807,36 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlign: 'center',
   },
-  dangerZone: {
+  jobOptionsSection: {
     gap: Spacing.md,
     paddingTop: Spacing.lg,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.border,
   },
-  dangerTitle: {
+  jobOptionsToggle: {
+    minHeight: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  jobOptionsToggleLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  jobOptionsText: {
     color: Colors.textMuted,
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  jobOptionsPanel: {
+    gap: Spacing.sm,
   },
   lifecycleError: {
     flexDirection: 'row',
