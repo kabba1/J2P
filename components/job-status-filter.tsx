@@ -29,7 +29,7 @@ export function JobStatusFilter({
   };
 
   return (
-    <View accessibilityRole="tablist" style={styles.container}>
+    <View accessibilityRole="tablist" style={styles.compactRail}>
       {OPTIONS.map((option) => {
         const selected = value === option.value;
         return (
@@ -60,12 +60,14 @@ export function JobStatusFilter({
 }
 
 const styles = StyleSheet.create({
-  container: {
+  compactRail: {
     flexDirection: 'row',
     gap: Spacing.xs,
     padding: Spacing.xs,
     borderRadius: Radius.md,
-    backgroundColor: Colors.surfaceMuted,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surfaceRaised,
   },
   option: {
     minHeight: 44,
@@ -76,14 +78,12 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: Spacing.sm,
     borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   selectedOption: {
-    backgroundColor: Colors.surface,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 1,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primarySoft,
   },
   label: {
     color: Colors.textMuted,
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   selectedLabel: {
-    color: Colors.primary,
+    color: Colors.text,
   },
   countBadge: {
     minWidth: 22,
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   selectedCount: {
-    color: Colors.primary,
+    color: Colors.text,
   },
   pressed: {
     opacity: 0.68,

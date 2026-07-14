@@ -32,6 +32,7 @@ type FieldProps = {
   multiline?: boolean;
   maxLength?: number;
   onBlur?: () => void;
+  last?: boolean;
 };
 
 function FormField({
@@ -44,9 +45,10 @@ function FormField({
   multiline,
   maxLength,
   onBlur,
+  last,
 }: FieldProps) {
   return (
-    <View style={styles.fieldCard}>
+    <View style={[styles.fieldGroup, last && styles.lastFieldGroup]}>
       <View style={styles.fieldHeader}>
         <Text style={styles.label}>{label}</Text>
         {required ? <Text style={styles.required}>Required</Text> : null}
@@ -61,7 +63,7 @@ function FormField({
           onBlur={onBlur}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="#9AA3B2"
+          placeholderTextColor={Colors.textMuted}
           returnKeyType={multiline ? 'default' : 'next'}
           style={[styles.input, multiline && styles.multilineInput]}
           textAlignVertical={multiline ? 'top' : 'center'}
@@ -117,53 +119,56 @@ export function JobForm({ initialJob, submitLabel, onSubmit }: JobFormProps) {
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}>
-        <FormField
-          label="Job Name"
-          icon="briefcase-outline"
-          value={name}
-          onChangeText={(value) => {
-            setName(value);
-            if (error) setError(undefined);
-          }}
-          onBlur={() => setNameTouched(true)}
-          placeholder="Johnson House Interior Repaint"
-          required
-        />
-        {nameTouched && nameIsBlank ? (
-          <Text accessibilityRole="alert" style={styles.validation}>
-            Job name is required.
-          </Text>
-        ) : null}
-        <FormField
-          label="Customer"
-          icon="person-outline"
-          value={customer}
-          onChangeText={setCustomer}
-          placeholder="Customer name (optional)"
-        />
-        <FormField
-          label="Address"
-          icon="location-outline"
-          value={address}
-          onChangeText={setAddress}
-          placeholder="Job address (optional)"
-        />
-        <FormField
-          label="Service Type"
-          icon="construct-outline"
-          value={serviceType}
-          onChangeText={setServiceType}
-          placeholder="Painting, pressure washing…"
-        />
-        <FormField
-          label="Notes"
-          icon="document-text-outline"
-          value={notes}
-          onChangeText={setNotes}
-          placeholder="Scope, access details, or reminders (optional)"
-          multiline
-          maxLength={300}
-        />
+        <View style={styles.formPanel}>
+          <FormField
+            label="Job Name"
+            icon="briefcase-outline"
+            value={name}
+            onChangeText={(value) => {
+              setName(value);
+              if (error) setError(undefined);
+            }}
+            onBlur={() => setNameTouched(true)}
+            placeholder="Johnson House Interior Repaint"
+            required
+          />
+          {nameTouched && nameIsBlank ? (
+            <Text accessibilityRole="alert" style={styles.validation}>
+              Job name is required.
+            </Text>
+          ) : null}
+          <FormField
+            label="Customer"
+            icon="person-outline"
+            value={customer}
+            onChangeText={setCustomer}
+            placeholder="Customer name (optional)"
+          />
+          <FormField
+            label="Address"
+            icon="location-outline"
+            value={address}
+            onChangeText={setAddress}
+            placeholder="Job address (optional)"
+          />
+          <FormField
+            label="Service Type"
+            icon="construct-outline"
+            value={serviceType}
+            onChangeText={setServiceType}
+            placeholder="Painting, pressure washing…"
+          />
+          <FormField
+            label="Notes"
+            icon="document-text-outline"
+            value={notes}
+            onChangeText={setNotes}
+            placeholder="Scope, access details, or reminders (optional)"
+            multiline
+            maxLength={300}
+            last
+          />
+        </View>
         {error ? (
           <Text accessibilityRole="alert" style={styles.validation}>
             {error}
@@ -190,26 +195,34 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 720,
     alignSelf: 'center',
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 20,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.xxl,
     gap: Spacing.md,
   },
-  fieldCard: {
-    padding: Spacing.lg,
-    borderRadius: Radius.md,
+  formPanel: {
+    overflow: 'hidden',
+    borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
+  },
+  fieldGroup: {
+    gap: Spacing.sm,
+    padding: Spacing.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
+  },
+  lastFieldGroup: {
+    borderBottomWidth: 0,
   },
   fieldHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
   },
   label: {
-    color: Colors.textMuted,
+    color: Colors.text,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -222,13 +235,18 @@ const styles = StyleSheet.create({
     minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surfaceRaised,
   },
   multilineRow: {
     alignItems: 'flex-start',
   },
   fieldIcon: {
     marginRight: Spacing.md,
-    marginTop: 1,
+    marginTop: 2,
   },
   input: {
     flex: 1,
@@ -240,7 +258,8 @@ const styles = StyleSheet.create({
   },
   multilineInput: {
     minHeight: 92,
-    paddingTop: 0,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.sm,
   },
   characterCount: {
     color: Colors.textMuted,
@@ -251,7 +270,8 @@ const styles = StyleSheet.create({
     color: Colors.danger,
     fontSize: 14,
     lineHeight: 20,
-    marginHorizontal: Spacing.xs,
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   submitButton: {
     marginTop: Spacing.sm,

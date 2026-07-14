@@ -65,12 +65,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 5,
-    elevation: 2,
+    backgroundColor: Colors.surfaceRaised,
   },
   pressed: {
     opacity: 0.76,
@@ -96,7 +91,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   meta: {
-    padding: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   title: {
     color: Colors.text,
@@ -119,13 +115,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.border,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surfaceRaised,
   },
   managePressed: {
     backgroundColor: Colors.primarySoft,
   },
   manageLabel: {
-    color: Colors.primary,
+    color: Colors.text,
     fontSize: 13,
     fontWeight: '800',
   },

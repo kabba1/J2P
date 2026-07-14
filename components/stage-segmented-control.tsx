@@ -16,7 +16,7 @@ const options: { label: string; value: MediaStage }[] = [
 
 export function StageSegmentedControl({ value, onChange }: StageSegmentedControlProps) {
   return (
-    <View accessibilityRole="tablist" style={styles.container}>
+    <View accessibilityRole="tablist" style={styles.compactRail}>
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -40,13 +40,13 @@ export function StageSegmentedControl({ value, onChange }: StageSegmentedControl
 }
 
 const styles = StyleSheet.create({
-  container: {
-    minHeight: 54,
+  compactRail: {
+    minHeight: 52,
     flexDirection: 'row',
     gap: Spacing.xs,
     padding: Spacing.xs,
     borderRadius: Radius.md,
-    backgroundColor: Colors.surfaceMuted,
+    backgroundColor: Colors.surfaceRaised,
     borderWidth: 1,
     borderColor: Colors.border,
   },
@@ -56,14 +56,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   selectedOption: {
-    backgroundColor: Colors.primary,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primarySoft,
   },
   pressed: {
     opacity: 0.72,
@@ -75,6 +73,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   selectedLabel: {
-    color: Colors.onPrimary,
+    color: Colors.text,
   },
 });

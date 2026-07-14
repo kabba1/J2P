@@ -265,7 +265,7 @@ export default function JobCameraScreen() {
   if ((!rawJobId || !stage || !job) && !jobsLoading) {
     return (
       <SafeAreaView style={styles.lightScreen}>
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
         <CameraPermissionState
           title="Camera unavailable"
           message="This job or photo stage is no longer available."
@@ -279,7 +279,7 @@ export default function JobCameraScreen() {
   if (!job || !stage || !rawJobId) {
     return (
       <SafeAreaView style={styles.loadingScreen}>
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
         <ActivityIndicator color={Colors.primary} size="large" />
         <Text style={styles.loadingText}>Preparing job…</Text>
       </SafeAreaView>
@@ -289,7 +289,7 @@ export default function JobCameraScreen() {
   if (isMatchedCapture && (beforeLoadState === 'loading' || beforeLoadState === 'not-needed')) {
     return (
       <SafeAreaView style={styles.loadingScreen}>
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
         <ActivityIndicator color={Colors.primary} size="large" />
         <Text style={styles.loadingText}>Loading Before photo…</Text>
       </SafeAreaView>
@@ -299,7 +299,7 @@ export default function JobCameraScreen() {
   if (isMatchedCapture && beforeLoadState !== 'ready') {
     return (
       <SafeAreaView style={styles.lightScreen}>
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
         <CameraPermissionState
           title={beforeLoadState === 'missing' ? 'Before photo file missing' : 'Before photo unavailable'}
           message={beforeError || 'The selected Before photo could not be prepared for matching.'}
@@ -313,7 +313,7 @@ export default function JobCameraScreen() {
   if (permission === null || cameraAvailable === undefined) {
     return (
       <SafeAreaView style={styles.loadingScreen}>
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
         <ActivityIndicator color={Colors.primary} size="large" />
         <Text style={styles.loadingText}>Preparing camera…</Text>
       </SafeAreaView>
@@ -323,7 +323,7 @@ export default function JobCameraScreen() {
   if (!cameraAvailable) {
     return (
       <SafeAreaView style={styles.lightScreen}>
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
         <CameraPermissionState
           title="No camera available"
           message="JobToPost could not find a camera on this device."
@@ -338,7 +338,7 @@ export default function JobCameraScreen() {
     const canAskAgain = permission.canAskAgain;
     return (
       <SafeAreaView style={styles.lightScreen}>
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
         <CameraPermissionState
           title="Camera access needed"
           message={
@@ -364,7 +364,7 @@ export default function JobCameraScreen() {
 
   return (
     <SafeAreaView edges={['top', 'right', 'bottom', 'left']} style={styles.cameraScreen}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <View style={styles.cameraHeader}>
         <Pressable
           accessibilityRole="button"
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
   },
   cameraScreen: {
     flex: 1,
-    backgroundColor: '#111111',
+    backgroundColor: Colors.background,
   },
   cameraHeader: {
     minHeight: 58,
@@ -610,6 +610,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
     backgroundColor: Colors.surface,
   },
   cameraTitle: {
@@ -628,7 +630,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 220,
     overflow: 'hidden',
-    backgroundColor: '#242424',
+    backgroundColor: '#05080C',
   },
   jobOverlay: {
     position: 'absolute',
@@ -685,7 +687,9 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     padding: Spacing.md,
     borderRadius: Radius.md,
-    backgroundColor: 'rgba(17,17,17,0.82)',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: 'rgba(15,20,27,0.9)',
   },
   ghostPanelLandscape: {
     left: 92,
@@ -726,7 +730,9 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     paddingHorizontal: Spacing.md,
     borderRadius: Radius.pill,
-    backgroundColor: 'rgba(17,17,17,0.82)',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: 'rgba(15,20,27,0.9)',
   },
   ghostCompactButtonLandscape: {
     right: Spacing.md,
@@ -744,7 +750,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 27,
-    backgroundColor: 'rgba(0,0,0,0.58)',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: 'rgba(15,20,27,0.88)',
   },
   controlSmallLabel: {
     position: 'absolute',
@@ -758,12 +766,14 @@ const styles = StyleSheet.create({
     width: 54,
     alignItems: 'center',
     borderRadius: 27,
+    borderWidth: 1,
+    borderColor: Colors.border,
     overflow: 'hidden',
-    backgroundColor: 'rgba(0,0,0,0.58)',
+    backgroundColor: 'rgba(15,20,27,0.88)',
   },
   zoomButton: {
     width: 54,
-    height: 38,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -780,7 +790,9 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.lg,
-    backgroundColor: '#151515',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+    backgroundColor: Colors.surface,
   },
   capturePanelLandscape: {
     minHeight: 126,
@@ -795,7 +807,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   captureCount: {
-    color: '#B9BEC7',
+    color: Colors.textMuted,
     fontSize: 12,
     lineHeight: 17,
     marginTop: 2,
@@ -813,7 +825,7 @@ const styles = StyleSheet.create({
     width: 66,
     height: 66,
     borderRadius: 33,
-    backgroundColor: Colors.onPrimary,
+    backgroundColor: Colors.primary,
   },
   shutterPressed: {
     transform: [{ scale: 0.94 }],
@@ -825,7 +837,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 30,
     borderWidth: 1,
-    borderColor: '#5A5A5A',
+    borderColor: Colors.border,
+    backgroundColor: Colors.surfaceRaised,
   },
   cameraError: {
     position: 'absolute',

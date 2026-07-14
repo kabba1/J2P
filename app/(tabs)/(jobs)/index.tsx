@@ -21,6 +21,7 @@ import { ScreenContainer } from '@/components/ui/screen-container';
 import { Colors, Radius, Spacing, TouchTarget } from '@/constants/theme';
 import { useJobs } from '@/state/jobs-context';
 import { useMedia } from '@/state/media-context';
+import { selectLatestJobMedia } from '@/utils/job-dashboard-presentation';
 import {
   filterJobs,
   JobStatusFilter as JobStatusFilterValue,
@@ -29,7 +30,7 @@ import {
 export default function JobsScreen() {
   const router = useRouter();
   const { jobs, loading, error, refresh } = useJobs();
-  const { countsForJob, refreshJobs } = useMedia();
+  const { countsForJob, media, refreshJobs } = useMedia();
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<JobStatusFilterValue>('active');
 
@@ -98,6 +99,7 @@ export default function JobsScreen() {
           <JobCard
             job={item}
             counts={countsForJob(item.id)}
+            previewUri={selectLatestJobMedia(media, item.id)?.localUri}
             onPress={() => router.push({ pathname: './[id]', params: { id: item.id } })}
           />
         )}
@@ -123,7 +125,8 @@ export default function JobsScreen() {
                 accessibilityLabel="Open Settings"
                 onPress={() => router.push('/settings')}
                 style={({ pressed }) => [styles.settingsButton, pressed && styles.pressed]}>
-                <Ionicons name="settings-outline" size={24} color={Colors.text} />
+                <Ionicons name="settings-outline" size={20} color={Colors.text} />
+                <Text style={styles.settingsLabel}>Settings</Text>
               </Pressable>
             </View>
             <PrimaryButton
@@ -211,7 +214,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 760,
     alignSelf: 'center',
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 20,
     paddingBottom: Spacing.xxl,
   },
   emptyContent: {
@@ -224,7 +227,7 @@ const styles = StyleSheet.create({
   },
   headingRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: Spacing.md,
   },
   headingText: {
@@ -233,10 +236,10 @@ const styles = StyleSheet.create({
   },
   wordmark: {
     color: Colors.text,
-    fontSize: 38,
-    lineHeight: 44,
+    fontSize: 28,
+    lineHeight: 34,
     fontWeight: '800',
-    letterSpacing: -1.2,
+    letterSpacing: -0.6,
   },
   wordmarkAccent: {
     color: Colors.primary,
@@ -245,18 +248,25 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     fontSize: 15,
     lineHeight: 22,
-    marginTop: -Spacing.sm,
-    marginBottom: Spacing.sm,
+    marginTop: 2,
   },
   settingsButton: {
     minWidth: TouchTarget.minimum,
     minHeight: TouchTarget.minimum,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: Radius.md,
     backgroundColor: Colors.surfaceRaised,
+  },
+  settingsLabel: {
+    color: Colors.text,
+    fontSize: 13,
+    fontWeight: '700',
   },
   searchContainer: {
     minHeight: 50,
@@ -267,7 +277,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: Radius.md,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surfaceRaised,
   },
   searchInput: {
     minHeight: 48,

@@ -11,6 +11,7 @@ import { Colors, Radius, Spacing, TouchTarget } from '@/constants/theme';
 import { useJobs } from '@/state/jobs-context';
 import { useMedia } from '@/state/media-context';
 import { MediaStage } from '@/types/media';
+import { selectLatestJobMedia } from '@/utils/job-dashboard-presentation';
 import { selectMostRecentActiveJob } from '@/utils/job-list';
 
 const STAGES: { value: MediaStage; label: string; icon: 'camera-outline' | 'hammer-outline' | 'checkmark-circle-outline'; color: string }[] = [
@@ -22,8 +23,12 @@ const STAGES: { value: MediaStage; label: string; icon: 'camera-outline' | 'hamm
 export default function CaptureScreen() {
   const router = useRouter();
   const { jobs, loading, error, refresh } = useJobs();
-  const { countsForJob, refreshJob } = useMedia();
+  const { countsForJob, media, refreshJob } = useMedia();
   const activeJob = useMemo(() => selectMostRecentActiveJob(jobs), [jobs]);
+  const latestMedia = useMemo(
+    () => (activeJob ? selectLatestJobMedia(media, activeJob.id) : undefined),
+    [activeJob, media],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -53,9 +58,6 @@ export default function CaptureScreen() {
     <ScreenContainer>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.heading}>
-          <View style={styles.headingIcon}>
-            <Ionicons name="camera" size={28} color={Colors.primary} />
-          </View>
           <View style={styles.headingText}>
             <Text style={styles.title}>Capture</Text>
             <Text style={styles.subtitle}>Jump back into the latest active job.</Text>
@@ -65,7 +67,8 @@ export default function CaptureScreen() {
             accessibilityLabel="Open Settings"
             onPress={() => router.push('/settings')}
             style={({ pressed }) => [styles.settingsButton, pressed && styles.pressed]}>
-            <Ionicons name="settings-outline" size={24} color={Colors.text} />
+            <Ionicons name="settings-outline" size={20} color={Colors.text} />
+            <Text style={styles.settingsLabel}>Settings</Text>
           </Pressable>
         </View>
 
@@ -91,6 +94,7 @@ export default function CaptureScreen() {
             <JobCard
               job={activeJob}
               counts={countsForJob(activeJob.id)}
+              previewUri={latestMedia?.localUri}
               onPress={openJob}
             />
 
@@ -142,7 +146,8 @@ const styles = StyleSheet.create({
     maxWidth: 760,
     alignSelf: 'center',
     gap: Spacing.lg,
-    padding: Spacing.lg,
+    paddingHorizontal: 20,
+    paddingTop: Spacing.lg,
     paddingBottom: Spacing.xxl,
   },
   heading: {
@@ -151,14 +156,6 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     paddingTop: Spacing.sm,
   },
-  headingIcon: {
-    width: 50,
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 25,
-    backgroundColor: Colors.primarySoft,
-  },
   headingText: {
     flex: 1,
     minWidth: 0,
@@ -166,17 +163,25 @@ const styles = StyleSheet.create({
   settingsButton: {
     minWidth: TouchTarget.minimum,
     minHeight: TouchTarget.minimum,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: Radius.md,
     backgroundColor: Colors.surfaceRaised,
   },
+  settingsLabel: {
+    color: Colors.text,
+    fontSize: 13,
+    fontWeight: '700',
+  },
   title: {
     color: Colors.text,
-    fontSize: 32,
-    lineHeight: 38,
+    fontSize: 28,
+    lineHeight: 34,
     fontWeight: '800',
     letterSpacing: -0.6,
   },
@@ -203,7 +208,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: 6,
     borderRadius: Radius.pill,
-    backgroundColor: '#EAF7ED',
+    borderWidth: 1,
+    borderColor: Colors.after,
+    backgroundColor: Colors.surfaceRaised,
   },
   activeDot: {
     width: 7,
@@ -236,11 +243,16 @@ const styles = StyleSheet.create({
   },
   stageRow: {
     flexDirection: 'row',
-    gap: Spacing.sm,
+    gap: Spacing.xs,
+    padding: Spacing.xs,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surfaceRaised,
     marginTop: Spacing.sm,
   },
   stageButton: {
-    minHeight: 88,
+    minHeight: 76,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -252,11 +264,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
   },
   stageIcon: {
-    width: 42,
-    height: 42,
+    width: 34,
+    height: 34,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 21,
+    borderRadius: Radius.sm,
   },
   stageLabel: {
     color: Colors.text,

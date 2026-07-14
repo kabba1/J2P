@@ -1,4 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Image } from 'expo-image';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Colors, Radius, Spacing } from '@/constants/theme';
@@ -10,6 +12,7 @@ type JobCardProps = {
   job: Job;
   onPress: () => void;
   counts?: MediaStageCounts;
+  previewUri?: string;
 };
 
 type CountProps = {
@@ -27,8 +30,15 @@ function Count({ label, value, color }: CountProps) {
   );
 }
 
-export function JobCard({ job, onPress, counts }: JobCardProps) {
+export function JobCard({ job, onPress, counts, previewUri }: JobCardProps) {
   const subtitle = [job.customer, job.serviceType].filter(Boolean).join(' · ');
+  const [previewFailed, setPreviewFailed] = useState(false);
+
+  useEffect(() => {
+    setPreviewFailed(false);
+  }, [previewUri]);
+
+  const showPreview = Boolean(previewUri) && !previewFailed;
 
   return (
     <Pressable
@@ -36,9 +46,24 @@ export function JobCard({ job, onPress, counts }: JobCardProps) {
       accessibilityLabel={`Open ${job.name}`}
       onPress={onPress}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
-      <View style={styles.topRow}>
-        <View style={styles.iconBox}>
-          <Ionicons name="briefcase" size={27} color={Colors.primary} />
+      <View style={styles.summaryRow}>
+        <View style={styles.photoPreview}>
+          {showPreview ? (
+            <Image
+              accessibilityLabel={`Latest photo for ${job.name}`}
+              cachePolicy="memory-disk"
+              contentFit="cover"
+              onError={() => setPreviewFailed(true)}
+              source={{ uri: previewUri }}
+              style={styles.previewImage}
+              transition={120}
+            />
+          ) : (
+            <View style={styles.photoFallback}>
+              <Ionicons name="camera-outline" size={28} color={Colors.textTertiary} />
+              <Text style={styles.photoFallbackLabel}>No photo</Text>
+            </View>
+          )}
         </View>
         <View style={styles.details}>
           {job.archivedAt ? (
@@ -62,7 +87,6 @@ export function JobCard({ job, onPress, counts }: JobCardProps) {
         </View>
         <Ionicons name="chevron-forward" size={22} color={Colors.textMuted} />
       </View>
-      <View style={styles.divider} />
       <View style={styles.countRow}>
         <Count label="Before" value={counts?.before ?? job.beforeCount} color={Colors.before} />
         <View style={styles.countDivider} />
@@ -76,32 +100,44 @@ export function JobCard({ job, onPress, counts }: JobCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    padding: Spacing.lg,
+    padding: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 2,
   },
   pressed: {
     backgroundColor: Colors.surfaceMuted,
   },
-  topRow: {
+  summaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
   },
-  iconBox: {
-    width: 54,
-    height: 54,
-    borderRadius: Radius.md,
+  photoPreview: {
+    width: 104,
+    height: 104,
+    overflow: 'hidden',
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surfaceRaised,
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  photoFallback: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.primarySoft,
+    gap: Spacing.xs,
+    backgroundColor: Colors.surfaceRaised,
+  },
+  photoFallbackLabel: {
+    color: Colors.textMuted,
+    fontSize: 11,
+    fontWeight: '700',
   },
   details: {
     flex: 1,
@@ -144,14 +180,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
   },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.border,
-    marginVertical: Spacing.md,
-  },
   countRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingTop: Spacing.sm,
+    marginTop: Spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
   },
   countItem: {
     flex: 1,
@@ -166,6 +201,7 @@ const styles = StyleSheet.create({
     fontSize: 19,
     lineHeight: 24,
     fontWeight: '800',
+    fontVariant: ['tabular-nums'],
   },
   countDivider: {
     width: StyleSheet.hairlineWidth,
