@@ -13,7 +13,7 @@
     "test:jobs": "node --test tests/async-storage-job-repository.test.cjs tests/job-list.test.cjs",
     "test:pairs": "node --test tests/async-storage-pair-repository.test.cjs",
     "test:matched-after": "node --test tests/matched-after-service.test.cjs",
-    "test:generated-assets": "node --test tests/app-config.test.cjs tests/async-storage-generated-asset-repository.test.cjs tests/before-after-post-renderer.test.cjs tests/generated-asset-config.test.cjs tests/generated-asset-export-service.test.cjs tests/generated-asset-storage.test.cjs tests/generated-asset-service.test.cjs tests/keyed-operation-queue.test.cjs"
+    "test:generated-assets": "node --test tests/app-config.test.cjs tests/eas-config.test.cjs tests/async-storage-generated-asset-repository.test.cjs tests/before-after-post-renderer.test.cjs tests/generated-asset-config.test.cjs tests/generated-asset-export-service.test.cjs tests/generated-asset-storage.test.cjs tests/generated-asset-service.test.cjs tests/keyed-operation-queue.test.cjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -24,6 +24,7 @@
     "expo": "~54.0.34",
     "expo-camera": "~17.0.10",
     "expo-constants": "~18.0.13",
+    "expo-dev-client": "~6.0.21",
     "expo-file-system": "~19.0.23",
     "expo-font": "~14.0.11",
     "expo-haptics": "~15.0.8",

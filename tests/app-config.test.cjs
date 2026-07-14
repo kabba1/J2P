@@ -53,4 +53,10 @@ test('Android config blocks every media-library read permission', () => {
   for (const permission of requiredBlocks) {
     assert.equal(blocked.has(permission), true, `${permission} must remain blocked.`);
   }
+
+  assert.deepEqual(
+    appConfig.expo.android.permissions ?? [],
+    [],
+    'Do not persist Expo-resolved media permissions back into app.json.',
+  );
 });

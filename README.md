@@ -28,6 +28,22 @@ npm start
 
 Scan the QR code with Expo Go on an Android device connected to the same network, or press `a` for an Android emulator and `w` for the web preview.
 
+## Standalone Android builds
+
+The repository is linked to EAS project `@kabba94/jobtopost`. Use the production-like preview APK for device audits:
+
+```bash
+npx eas-cli@latest build --platform android --profile preview
+```
+
+For development-client builds that connect to Metro:
+
+```bash
+npx eas-cli@latest build --platform android --profile development
+```
+
+The `production` profile intentionally produces an Android App Bundle for Google Play and is not used for direct Pixel installation.
+
 The Pixel 6a through Expo Go is the primary device target. The product workflow stores and processes media locally; the Expo/Metro connection is still needed to load and refresh the app during development. The browser build is useful for navigation plus empty and error-state smoke tests. The saved-photo builder, native document storage, persistent post generation, Save to Photos, and local-file sharing require Expo Go on Android or iOS.
 
 On 2026-07-13, the complete Pixel 6a golden path passed: create a job, capture Before and Progress photos, capture and approve a ghost-aligned After, generate a static post, Save to Photos, open Android sharing, and force-close/reopen with the job, photos, pair, and generated post still present. Detailed rendering-quality, permission-denial, destructive, navigation, and scale checks remain open.
