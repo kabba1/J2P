@@ -216,17 +216,7 @@ export default function ReviewPhotoScreen() {
             </View>
           ) : null}
 
-          <View style={styles.actionRow}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Retake photo"
-              disabled={Boolean(savingAction)}
-              onPress={() => void discardAndBack()}
-              style={({ pressed }) => [styles.secondaryAction, pressed && styles.pressed]}>
-              <Ionicons name="refresh" size={28} color={Colors.primary} />
-              <Text style={styles.secondaryTitle}>Retake</Text>
-              <Text style={styles.secondaryCaption}>Capture again</Text>
-            </Pressable>
+          <View style={styles.actions}>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Use photo"
@@ -242,21 +232,37 @@ export default function ReviewPhotoScreen() {
               <Text style={styles.primaryTitle}>Use Photo</Text>
               <Text style={styles.primaryCaption}>Keep this photo</Text>
             </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Save and take another photo"
-              accessibilityState={{ busy: savingAction === 'another' }}
-              disabled={Boolean(savingAction)}
-              onPress={() => void save('another')}
-              style={({ pressed }) => [styles.secondaryAction, pressed && styles.pressed]}>
-              {savingAction === 'another' ? (
-                <ActivityIndicator color={Colors.primary} />
-              ) : (
-                <Ionicons name="camera-outline" size={29} color={Colors.primary} />
-              )}
-              <Text style={styles.secondaryTitle}>Take Another</Text>
-              <Text style={styles.secondaryCaption}>Save and continue</Text>
-            </Pressable>
+            <View style={styles.secondaryActionRow}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Retake photo"
+                disabled={Boolean(savingAction)}
+                onPress={() => void discardAndBack()}
+                style={({ pressed }) => [styles.secondaryAction, pressed && styles.pressed]}>
+                <Ionicons name="refresh" size={24} color={Colors.primary} />
+                <View style={styles.secondaryText}>
+                  <Text style={styles.secondaryTitle}>Retake</Text>
+                  <Text style={styles.secondaryCaption}>Capture again</Text>
+                </View>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Save and take another photo"
+                accessibilityState={{ busy: savingAction === 'another' }}
+                disabled={Boolean(savingAction)}
+                onPress={() => void save('another')}
+                style={({ pressed }) => [styles.secondaryAction, pressed && styles.pressed]}>
+                {savingAction === 'another' ? (
+                  <ActivityIndicator color={Colors.primary} />
+                ) : (
+                  <Ionicons name="camera-outline" size={25} color={Colors.primary} />
+                )}
+                <View style={styles.secondaryText}>
+                  <Text style={styles.secondaryTitle}>Take Another</Text>
+                  <Text style={styles.secondaryCaption}>Save and continue</Text>
+                </View>
+              </Pressable>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -281,7 +287,7 @@ const styles = StyleSheet.create({
     maxWidth: 720,
     alignSelf: 'center',
     gap: Spacing.lg,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 20,
     paddingBottom: Spacing.xxl,
   },
   jobName: {
@@ -295,13 +301,13 @@ const styles = StyleSheet.create({
     minHeight: 250,
     maxHeight: 430,
     borderRadius: Radius.md,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: Colors.surfaceRaised,
   },
   summaryCard: {
     borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Colors.border,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surfaceRaised,
     paddingHorizontal: Spacing.lg,
   },
   summaryRow: {
@@ -323,27 +329,35 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
-  actionRow: {
+  actions: {
+    gap: Spacing.sm,
+  },
+  secondaryActionRow: {
     flexDirection: 'row',
     gap: Spacing.sm,
   },
   secondaryAction: {
     flex: 1,
-    minHeight: 146,
+    minHeight: 76,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: Spacing.sm,
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
     borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
   },
   primaryAction: {
-    flex: 1.15,
-    minHeight: 146,
+    width: '100%',
+    minHeight: 72,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: Spacing.sm,
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
     borderRadius: Radius.md,
     backgroundColor: Colors.primary,
   },
@@ -351,29 +365,24 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: 14,
     fontWeight: '800',
-    textAlign: 'center',
-    marginTop: Spacing.sm,
+  },
+  secondaryText: {
+    minWidth: 0,
   },
   secondaryCaption: {
     color: Colors.textMuted,
     fontSize: 11,
     lineHeight: 15,
-    textAlign: 'center',
-    marginTop: 2,
   },
   primaryTitle: {
     color: Colors.onPrimary,
     fontSize: 15,
     fontWeight: '800',
-    textAlign: 'center',
-    marginTop: Spacing.sm,
   },
   primaryCaption: {
-    color: '#DDEAFF',
+    color: Colors.onPrimary,
     fontSize: 11,
     lineHeight: 15,
-    textAlign: 'center',
-    marginTop: 2,
   },
   errorBanner: {
     flexDirection: 'row',

@@ -16,7 +16,7 @@
     "test:generated-assets": "node --test tests/app-config.test.cjs tests/eas-config.test.cjs tests/async-storage-generated-asset-repository.test.cjs tests/before-after-post-renderer.test.cjs tests/generated-asset-config.test.cjs tests/generated-asset-export-service.test.cjs tests/generated-asset-storage.test.cjs tests/generated-asset-service.test.cjs tests/keyed-operation-queue.test.cjs",
     "test:polish": "node --test tests/field-usability-polish.test.cjs",
     "test:job-dashboard": "node --test tests/job-dashboard-presentation.test.cjs",
-    "test:ui": "node --test tests/ui-theme-contract.test.cjs tests/ui-navigation-contract.test.cjs tests/job-dashboard-ui-contract.test.cjs tests/field-workflow-ui-contract.test.cjs"
+    "test:ui": "node --test tests/ui-theme-contract.test.cjs tests/ui-navigation-contract.test.cjs tests/job-dashboard-ui-contract.test.cjs tests/field-workflow-ui-contract.test.cjs tests/remaining-workflow-ui-contract.test.cjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

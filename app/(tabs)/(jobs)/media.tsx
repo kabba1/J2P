@@ -191,23 +191,26 @@ export default function MediaDetailScreen() {
             />
           )}
 
-          <View style={styles.stageSection}>
-            <Text style={styles.sectionTitle}>Move to stage</Text>
-            <StageSegmentedControl value={stage} onChange={setStage} />
-            {stage !== record.stage ? (
-              <Text style={styles.stageHint}>
-                This photo will move from {stageLabel(record.stage)} to {stageLabel(stage)}.
-                {activePair ? ' Its Before and After pairing will also be removed.' : ''}
-              </Text>
-            ) : null}
+          <View style={styles.metadataWorkspace}>
+            <View style={styles.stageSection}>
+              <Text style={styles.sectionTitle}>Move to stage</Text>
+              <StageSegmentedControl value={stage} onChange={setStage} />
+              {stage !== record.stage ? (
+                <Text style={styles.stageHint}>
+                  This photo will move from {stageLabel(record.stage)} to {stageLabel(stage)}.
+                  {activePair ? ' Its Before and After pairing will also be removed.' : ''}
+                </Text>
+              ) : null}
+            </View>
+            <View style={styles.metadataDivider} />
+            <PhotoMetadataForm
+              embedded
+              shotName={shotName}
+              note={note}
+              onChangeShotName={setShotName}
+              onChangeNote={setNote}
+            />
           </View>
-
-          <PhotoMetadataForm
-            shotName={shotName}
-            note={note}
-            onChangeShotName={setShotName}
-            onChangeNote={setNote}
-          />
 
           {error ? (
             <View accessibilityRole="alert" style={styles.errorBanner}>
@@ -257,7 +260,7 @@ const styles = StyleSheet.create({
     maxWidth: 720,
     alignSelf: 'center',
     gap: Spacing.lg,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 20,
     paddingBottom: Spacing.xxl,
   },
   titleBlock: {
@@ -286,7 +289,7 @@ const styles = StyleSheet.create({
     minHeight: 260,
     maxHeight: 460,
     borderRadius: Radius.md,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: Colors.surfaceRaised,
   },
   missingPhoto: {
     minHeight: 280,
@@ -313,8 +316,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: Spacing.sm,
   },
+  metadataWorkspace: {
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surface,
+  },
   stageSection: {
     gap: Spacing.sm,
+    padding: Spacing.lg,
+  },
+  metadataDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.border,
   },
   sectionTitle: {
     color: Colors.text,

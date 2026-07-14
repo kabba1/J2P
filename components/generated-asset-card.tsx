@@ -40,7 +40,12 @@ export function GeneratedAssetCard({
         onPress={onPress}
         style={({ pressed }) => [styles.openArea, pressed && styles.pressed]}>
         {missing ? (
-          <View style={[styles.thumbnail, styles.missingThumbnail]}>
+          <View
+            style={[
+              styles.thumbnail,
+              styles.missingThumbnail,
+              { aspectRatio: asset.width / asset.height },
+            ]}>
             <Ionicons name="image-outline" size={38} color={Colors.textMuted} />
             <Text style={styles.missingText}>File unavailable</Text>
           </View>
@@ -48,10 +53,10 @@ export function GeneratedAssetCard({
           <Image
             accessibilityLabel={`Generated Before and After post for ${jobName}`}
             cachePolicy="memory-disk"
-            contentFit="cover"
+            contentFit="contain"
             onError={onImageError}
             source={{ uri: asset.localUri }}
-            style={styles.thumbnail}
+            style={[styles.thumbnail, { aspectRatio: asset.width / asset.height }]}
           />
         )}
 
@@ -99,11 +104,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     borderRadius: Radius.md,
     backgroundColor: Colors.surface,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 7,
-    elevation: 2,
   },
   openArea: {
     backgroundColor: Colors.surface,
@@ -114,8 +114,7 @@ const styles = StyleSheet.create({
   },
   thumbnail: {
     width: '100%',
-    aspectRatio: 1.35,
-    backgroundColor: Colors.surfaceMuted,
+    backgroundColor: Colors.background,
   },
   missingThumbnail: {
     alignItems: 'center',

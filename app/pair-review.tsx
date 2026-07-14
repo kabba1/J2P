@@ -195,9 +195,7 @@ export default function PairReviewScreen() {
         <ScreenContainer>
           <ScreenHeader title="Review Pair" />
           <View style={styles.unavailable}>
-            <View style={styles.unavailableIcon}>
-              <Ionicons name="images-outline" size={42} color={Colors.primary} />
-            </View>
+            <Ionicons name="images-outline" size={42} color={Colors.primary} />
             <Text style={styles.unavailableTitle}>Pair preview unavailable</Text>
             <Text style={styles.unavailableMessage}>
               The Before photo or temporary After photo could not be found on this device.
@@ -333,11 +331,11 @@ const styles = StyleSheet.create({
     maxWidth: 760,
     alignSelf: 'center',
     gap: Spacing.lg,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 20,
     paddingBottom: Spacing.xxl,
   },
   titleBlock: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   jobName: {
     maxWidth: '100%',
@@ -350,7 +348,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     lineHeight: 30,
     fontWeight: '800',
-    textAlign: 'center',
     marginTop: Spacing.xs,
   },
   subtitle: {
@@ -358,7 +355,6 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     fontSize: 14,
     lineHeight: 20,
-    textAlign: 'center',
     marginTop: Spacing.xs,
   },
   modeControl: {
@@ -366,11 +362,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.xs,
     padding: Spacing.xs,
+    borderWidth: 1,
+    borderColor: Colors.border,
     borderRadius: Radius.md,
-    backgroundColor: Colors.surfaceMuted,
+    backgroundColor: Colors.surfaceRaised,
   },
   modeButton: {
     flex: 1,
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: Radius.sm,
@@ -387,8 +386,9 @@ const styles = StyleSheet.create({
     color: Colors.onPrimary,
   },
   comparisonCard: {
+    overflow: 'hidden',
     gap: Spacing.md,
-    padding: Spacing.md,
+    padding: 0,
     borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -397,6 +397,8 @@ const styles = StyleSheet.create({
   metadata: {
     flexDirection: 'row',
     gap: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.md,
   },
   metadataColumn: {
     flex: 1,
@@ -457,14 +459,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Spacing.md,
     padding: Spacing.xl,
-  },
-  unavailableIcon: {
-    width: 82,
-    height: 82,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 41,
-    backgroundColor: Colors.primarySoft,
   },
   unavailableTitle: {
     color: Colors.text,

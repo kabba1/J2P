@@ -16,13 +16,11 @@ function InfoRow({ icon, title, message, tone = 'default' }: InfoRowProps) {
   const warning = tone === 'warning';
   return (
     <View style={styles.infoRow}>
-      <View style={[styles.infoIcon, warning && styles.warningIcon]}>
-        <Ionicons
-          name={icon}
-          size={22}
-          color={warning ? Colors.progress : Colors.primary}
-        />
-      </View>
+      <Ionicons
+        name={icon}
+        size={22}
+        color={warning ? Colors.progress : Colors.primary}
+      />
       <View style={styles.infoText}>
         <Text style={styles.infoTitle}>{title}</Text>
         <Text style={styles.infoMessage}>{message}</Text>
@@ -36,9 +34,7 @@ export default function SettingsScreen() {
     <ScreenContainer>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.heading}>
-          <View style={styles.headingIcon}>
-            <Ionicons name="settings" size={28} color={Colors.primary} />
-          </View>
+          <Ionicons name="settings" size={25} color={Colors.primary} />
           <View style={styles.headingText}>
             <Text style={styles.title}>Settings</Text>
             <Text style={styles.subtitle}>Storage, privacy, and app behavior.</Text>
@@ -129,7 +125,8 @@ const styles = StyleSheet.create({
     maxWidth: 760,
     alignSelf: 'center',
     gap: Spacing.xl,
-    padding: Spacing.lg,
+    paddingHorizontal: 20,
+    paddingTop: Spacing.lg,
     paddingBottom: Spacing.xxl,
   },
   heading: {
@@ -138,21 +135,13 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     paddingTop: Spacing.sm,
   },
-  headingIcon: {
-    width: 50,
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 25,
-    backgroundColor: Colors.primarySoft,
-  },
   headingText: {
     flex: 1,
   },
   title: {
     color: Colors.text,
-    fontSize: 32,
-    lineHeight: 38,
+    fontSize: 27,
+    lineHeight: 33,
     fontWeight: '800',
     letterSpacing: -0.6,
   },
@@ -166,7 +155,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: Colors.text,
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: '800',
   },
   card: {
@@ -174,24 +163,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: Radius.md,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surfaceRaised,
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: Spacing.md,
     padding: Spacing.lg,
-  },
-  infoIcon: {
-    width: 42,
-    height: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 21,
-    backgroundColor: Colors.primarySoft,
-  },
-  warningIcon: {
-    backgroundColor: '#FFF4E5',
   },
   infoText: {
     flex: 1,
@@ -211,7 +189,7 @@ const styles = StyleSheet.create({
   divider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: Colors.border,
-    marginLeft: 70,
+    marginLeft: 34,
   },
   pendingCard: {
     flexDirection: 'row',
@@ -219,9 +197,9 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: '#B7D1FF',
+    borderColor: Colors.border,
     borderRadius: Radius.md,
-    backgroundColor: Colors.primarySoft,
+    backgroundColor: Colors.surfaceRaised,
   },
   pendingText: {
     flex: 1,

@@ -37,8 +37,16 @@ function ComparisonImage({ uri, label, contentFit }: ComparisonImageProps) {
         source={{ uri }}
         style={StyleSheet.absoluteFill}
       />
-      <View pointerEvents="none" style={[styles.badge, label === 'After' && styles.afterBadge]}>
-        <Text style={styles.badgeText}>{label.toUpperCase()}</Text>
+      <View
+        pointerEvents="none"
+        style={[styles.badge, label === 'After' ? styles.afterBadge : styles.beforeBadge]}>
+        <Text
+          style={[
+            styles.badgeText,
+            label === 'After' ? styles.afterBadgeText : styles.beforeBadgeText,
+          ]}>
+          {label.toUpperCase()}
+        </Text>
       </View>
     </View>
   );
@@ -120,11 +128,17 @@ export function ComparisonView({
         </View>
       ) : null}
 
-      <View pointerEvents="none" style={[styles.badge, styles.sliderBeforeBadge]}>
-        <Text style={styles.badgeText}>{beforeLabel.toUpperCase()}</Text>
+      <View
+        pointerEvents="none"
+        style={[styles.badge, styles.beforeBadge, styles.sliderBeforeBadge]}>
+        <Text style={[styles.badgeText, styles.beforeBadgeText]}>
+          {beforeLabel.toUpperCase()}
+        </Text>
       </View>
       <View pointerEvents="none" style={[styles.badge, styles.afterBadge]}>
-        <Text style={styles.badgeText}>{afterLabel.toUpperCase()}</Text>
+        <Text style={[styles.badgeText, styles.afterBadgeText]}>
+          {afterLabel.toUpperCase()}
+        </Text>
       </View>
 
       <View
@@ -143,8 +157,8 @@ export function ComparisonView({
         style={StyleSheet.absoluteFill}>
         <View pointerEvents="none" style={[styles.divider, { left: `${splitPercentage}%` }]} />
         <View pointerEvents="none" style={[styles.handle, { left: `${splitPercentage}%` }]}>
-          <Ionicons name="chevron-back" size={19} color={Colors.textMuted} />
-          <Ionicons name="chevron-forward" size={19} color={Colors.textMuted} />
+          <Ionicons name="chevron-back" size={19} color={Colors.text} />
+          <Ionicons name="chevron-forward" size={19} color={Colors.text} />
         </View>
       </View>
     </View>
@@ -156,7 +170,7 @@ const styles = StyleSheet.create({
     width: '100%',
     overflow: 'hidden',
     borderRadius: Radius.md,
-    backgroundColor: '#151515',
+    backgroundColor: Colors.surfaceRaised,
   },
   sideBySide: {
     flexDirection: 'row',
@@ -164,7 +178,7 @@ const styles = StyleSheet.create({
   sideImageContainer: {
     flex: 1,
     overflow: 'hidden',
-    backgroundColor: '#151515',
+    backgroundColor: Colors.surfaceRaised,
   },
   sideDivider: {
     width: 2,
@@ -190,7 +204,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     paddingVertical: 6,
     borderRadius: Radius.sm,
-    backgroundColor: 'rgba(11,18,32,0.76)',
+    borderWidth: 1,
+    backgroundColor: 'rgba(15,20,27,0.88)',
+  },
+  beforeBadge: {
+    borderColor: Colors.before,
   },
   sliderBeforeBadge: {
     left: Spacing.md,
@@ -198,13 +216,18 @@ const styles = StyleSheet.create({
   afterBadge: {
     right: Spacing.md,
     left: undefined,
-    backgroundColor: Colors.primary,
+    borderColor: Colors.after,
   },
   badgeText: {
-    color: Colors.onPrimary,
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.3,
+  },
+  beforeBadgeText: {
+    color: Colors.before,
+  },
+  afterBadgeText: {
+    color: Colors.after,
   },
   divider: {
     position: 'absolute',
@@ -226,12 +249,7 @@ const styles = StyleSheet.create({
     marginTop: -26,
     borderRadius: 26,
     borderWidth: 2,
-    borderColor: Colors.onPrimary,
-    backgroundColor: Colors.onPrimary,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
+    borderColor: Colors.text,
+    backgroundColor: Colors.surfaceRaised,
   },
 });

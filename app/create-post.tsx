@@ -328,9 +328,7 @@ export default function CreatePostScreen() {
       <ScreenContainer>
         <ScreenHeader title="Create Post" onBack={leaveBuilder} />
         <View style={styles.unavailable}>
-          <View style={styles.unavailableIcon}>
-            <Ionicons name="images-outline" size={42} color={Colors.textMuted} />
-          </View>
+          <Ionicons name="images-outline" size={42} color={Colors.textMuted} />
           <Text style={styles.unavailableTitle}>Pair unavailable</Text>
           <Text style={styles.unavailableMessage}>
             The saved pair or one of its local photo files is no longer available. Return to the job and choose another pair.
@@ -439,89 +437,91 @@ export default function CreatePostScreen() {
             </Text>
           </View>
 
-          <View style={styles.settingsCard}>
-            <Text style={styles.sectionTitle}>Output Format</Text>
-            <Text style={styles.sectionCaption}>Choose the size for your finished post.</Text>
-            <View accessibilityRole="radiogroup" style={styles.optionRow}>
-              <OptionButton
-                label="Portrait"
-                caption="1080 × 1350 · 4:5"
-                icon="phone-portrait-outline"
-                selected={format === 'portrait'}
-                disabled={generationInFlight}
-                onPress={() => setFormat('portrait')}
-              />
-              <OptionButton
-                label="Square"
-                caption="1080 × 1080 · 1:1"
-                icon="square-outline"
-                selected={format === 'square'}
-                disabled={generationInFlight}
-                onPress={() => setFormat('square')}
-              />
-            </View>
-          </View>
-
-          <View style={styles.settingsCard}>
-            <Text style={styles.sectionTitle}>Layout</Text>
-            <Text style={styles.sectionCaption}>Arrange the Before and After photos.</Text>
-            <View accessibilityRole="radiogroup" style={styles.optionRow}>
-              <OptionButton
-                label="Side by Side"
-                caption="Left and right"
-                icon="code-outline"
-                selected={layout === 'side-by-side'}
-                disabled={generationInFlight}
-                onPress={() => setLayout('side-by-side')}
-              />
-              <OptionButton
-                label="Stacked"
-                caption="Top and bottom"
-                icon="reorder-two-outline"
-                selected={layout === 'stacked'}
-                disabled={generationInFlight}
-                onPress={() => setLayout('stacked')}
-              />
-            </View>
-          </View>
-
-          <View style={styles.settingsCard}>
-            <View style={styles.switchRow}>
-              <View style={styles.switchText}>
-                <Text style={styles.sectionTitle}>Before / After Labels</Text>
-                <Text style={styles.sectionCaption}>Show a label on each photo.</Text>
+          <View style={styles.customizationPanel}>
+            <View style={styles.customizationSection}>
+              <Text style={styles.sectionTitle}>Output Format</Text>
+              <Text style={styles.sectionCaption}>Choose the size for your finished post.</Text>
+              <View accessibilityRole="radiogroup" style={styles.optionRow}>
+                <OptionButton
+                  label="Portrait"
+                  caption="1080 × 1350 · 4:5"
+                  icon="phone-portrait-outline"
+                  selected={format === 'portrait'}
+                  disabled={generationInFlight}
+                  onPress={() => setFormat('portrait')}
+                />
+                <OptionButton
+                  label="Square"
+                  caption="1080 × 1080 · 1:1"
+                  icon="square-outline"
+                  selected={format === 'square'}
+                  disabled={generationInFlight}
+                  onPress={() => setFormat('square')}
+                />
               </View>
-              <Switch
-                accessibilityLabel="Show Before and After labels"
-                value={labelsEnabled}
-                disabled={generationInFlight}
-                onValueChange={setLabelsEnabled}
-                trackColor={{ false: '#C8CED8', true: '#9FC4FF' }}
-                thumbColor={labelsEnabled ? Colors.primary : Colors.onPrimary}
+            </View>
+            <View style={styles.customizationDivider} />
+            <View style={styles.customizationSection}>
+              <Text style={styles.sectionTitle}>Layout</Text>
+              <Text style={styles.sectionCaption}>Arrange the Before and After photos.</Text>
+              <View accessibilityRole="radiogroup" style={styles.optionRow}>
+                <OptionButton
+                  label="Side by Side"
+                  caption="Left and right"
+                  icon="code-outline"
+                  selected={layout === 'side-by-side'}
+                  disabled={generationInFlight}
+                  onPress={() => setLayout('side-by-side')}
+                />
+                <OptionButton
+                  label="Stacked"
+                  caption="Top and bottom"
+                  icon="reorder-two-outline"
+                  selected={layout === 'stacked'}
+                  disabled={generationInFlight}
+                  onPress={() => setLayout('stacked')}
+                />
+              </View>
+            </View>
+            <View style={styles.customizationDivider} />
+            <View style={styles.customizationSection}>
+              <View style={styles.switchRow}>
+                <View style={styles.switchText}>
+                  <Text style={styles.sectionTitle}>Before / After Labels</Text>
+                  <Text style={styles.sectionCaption}>Show a label on each photo.</Text>
+                </View>
+                <Switch
+                  accessibilityLabel="Show Before and After labels"
+                  value={labelsEnabled}
+                  disabled={generationInFlight}
+                  onValueChange={setLabelsEnabled}
+                  trackColor={{ false: Colors.surfaceMuted, true: Colors.primary }}
+                  thumbColor={Colors.onPrimary}
+                />
+              </View>
+            </View>
+            <View style={styles.customizationDivider} />
+            <View style={styles.customizationSection}>
+              <View style={styles.footerHeader}>
+                <Text style={styles.sectionTitle}>Footer Text</Text>
+                <Text style={styles.characterCount}>
+                  {footerText.length}/{GENERATED_ASSET_FOOTER_MAX_LENGTH}
+                </Text>
+              </View>
+              <Text style={styles.sectionCaption}>Optional business name or call to action.</Text>
+              <TextInput
+                accessibilityLabel="Footer text"
+                autoCapitalize="sentences"
+                maxLength={GENERATED_ASSET_FOOTER_MAX_LENGTH}
+                editable={!generationInFlight}
+                onChangeText={setFooterText}
+                placeholder="Johnson Painting Co. · Request a free estimate"
+                placeholderTextColor={Colors.textTertiary}
+                returnKeyType="done"
+                style={styles.input}
+                value={footerText}
               />
             </View>
-          </View>
-
-          <View style={styles.settingsCard}>
-            <View style={styles.footerHeader}>
-              <Text style={styles.sectionTitle}>Footer Text</Text>
-              <Text style={styles.characterCount}>
-                {footerText.length}/{GENERATED_ASSET_FOOTER_MAX_LENGTH}
-              </Text>
-            </View>
-            <Text style={styles.sectionCaption}>Optional business name or call to action.</Text>
-            <TextInput
-              accessibilityLabel="Footer text"
-              autoCapitalize="sentences"
-              maxLength={GENERATED_ASSET_FOOTER_MAX_LENGTH}
-              editable={!generationInFlight}
-              onChangeText={setFooterText}
-              placeholder="Johnson Painting Co. · Request a free estimate"
-              placeholderTextColor="#9098A8"
-              returnKeyType="done"
-              style={styles.input}
-              value={footerText}
-            />
           </View>
 
           {error ? (
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
     maxWidth: 760,
     alignSelf: 'center',
     gap: Spacing.lg,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 20,
     paddingBottom: Spacing.xl,
   },
   intro: {
@@ -595,11 +595,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     borderRadius: Radius.lg,
     backgroundColor: Colors.surface,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 2,
   },
   previewHeader: {
     flexDirection: 'row',
@@ -612,7 +607,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     alignSelf: 'center',
     borderRadius: Radius.md,
-    backgroundColor: Colors.surfaceMuted,
+    backgroundColor: Colors.background,
   },
   cropNote: {
     color: Colors.textMuted,
@@ -630,7 +625,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceMuted,
   },
   readyBadgeActive: {
-    backgroundColor: '#E9F7EC',
+    backgroundColor: Colors.surfaceRaised,
   },
   readyBadgeError: {
     backgroundColor: Colors.dangerSoft,
@@ -675,7 +670,7 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
   retryPreviewButton: {
-    minHeight: 42,
+    minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -691,13 +686,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '800',
   },
-  settingsCard: {
-    gap: Spacing.md,
-    padding: Spacing.lg,
+  customizationPanel: {
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: Radius.md,
     backgroundColor: Colors.surface,
+  },
+  customizationSection: {
+    gap: Spacing.md,
+    padding: Spacing.lg,
+  },
+  customizationDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.border,
   },
   sectionTitle: {
     color: Colors.text,
@@ -724,13 +726,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: Radius.md,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surfaceRaised,
   },
   optionSelected: {
     borderWidth: 2,
     borderColor: Colors.primary,
     padding: Spacing.md - 1,
-    backgroundColor: '#F8FBFF',
+    backgroundColor: Colors.primarySoft,
   },
   optionIcon: {
     width: 38,
@@ -791,7 +793,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: Radius.sm,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.surfaceRaised,
     color: Colors.text,
     fontSize: 15,
   },
@@ -829,7 +831,7 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: '#B7D1FF',
+    borderColor: Colors.primary,
     backgroundColor: Colors.primarySoft,
   },
   deviceNoticeText: {
@@ -844,14 +846,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Spacing.md,
     padding: Spacing.xl,
-  },
-  unavailableIcon: {
-    width: 78,
-    height: 78,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 39,
-    backgroundColor: Colors.surfaceMuted,
   },
   unavailableTitle: {
     color: Colors.text,

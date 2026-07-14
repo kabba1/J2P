@@ -14,6 +14,7 @@ import {
 
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { ScreenContainer } from '@/components/ui/screen-container';
+import { ScreenHeader } from '@/components/ui/screen-header';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { useJobs } from '@/state/jobs-context';
 import { useMedia } from '@/state/media-context';
@@ -314,18 +315,7 @@ export default function AfterShotQueueScreen() {
   if ((!jobId || !job) && !jobsLoading) {
     return (
       <ScreenContainer>
-        <View style={styles.header}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            onPress={() => router.back()}
-            style={({ pressed }) => [styles.headerSide, pressed && styles.pressed]}>
-            <Ionicons name="chevron-back" size={27} color={Colors.primary} />
-            <Text style={styles.backLabel}>Back</Text>
-          </Pressable>
-          <Text style={styles.headerTitle}>After Photos</Text>
-          <View style={styles.headerSide} />
-        </View>
+        <ScreenHeader title="After Photos" onBack={() => router.back()} />
         <View style={styles.notFound}>
           <Ionicons name="images-outline" size={48} color={Colors.textMuted} />
           <Text style={styles.notFoundTitle}>Queue unavailable</Text>
@@ -350,20 +340,7 @@ export default function AfterShotQueueScreen() {
 
   return (
     <ScreenContainer>
-      <View style={styles.header}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Back to job"
-          onPress={() => router.back()}
-          style={({ pressed }) => [styles.headerSide, pressed && styles.pressed]}>
-          <Ionicons name="chevron-back" size={27} color={Colors.primary} />
-          <Text style={styles.backLabel}>Back</Text>
-        </Pressable>
-        <Text numberOfLines={1} style={styles.headerTitle}>
-          After Photos
-        </Text>
-        <View style={styles.headerSide} />
-      </View>
+      <ScreenHeader title="After Photos" onBack={() => router.back()} />
 
       <FlatList
         data={beforeMedia}
@@ -439,9 +416,7 @@ export default function AfterShotQueueScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <Ionicons name="images-outline" size={39} color={Colors.primary} />
-            </View>
+            <Ionicons name="images-outline" size={39} color={Colors.primary} />
             <Text style={styles.emptyTitle}>Capture Before photos first</Text>
             <Text style={styles.emptyMessage}>
               Every matching After starts with a Before photo from this job.
@@ -486,37 +461,11 @@ export default function AfterShotQueueScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    minHeight: 58,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.background,
-  },
-  headerSide: {
-    width: 88,
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backLabel: {
-    color: Colors.primary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  headerTitle: {
-    flex: 1,
-    color: Colors.text,
-    fontSize: 21,
-    lineHeight: 27,
-    fontWeight: '800',
-    textAlign: 'center',
-  },
   listContent: {
     width: '100%',
     maxWidth: 760,
     alignSelf: 'center',
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 20,
     paddingBottom: Spacing.xl,
   },
   emptyListContent: {
@@ -598,11 +547,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     borderRadius: Radius.md,
     backgroundColor: Colors.surface,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 7,
-    elevation: 2,
   },
   queueCardCompact: {
     minHeight: 154,
@@ -612,7 +556,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.995 }],
   },
   cardUnavailable: {
-    backgroundColor: '#FAFAFB',
+    backgroundColor: Colors.surfaceMuted,
   },
   thumbnail: {
     width: 104,
@@ -686,21 +630,25 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
   },
   actionPill: {
-    minHeight: 38,
+    minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 5,
     paddingHorizontal: Spacing.md,
     borderRadius: Radius.pill,
+    borderWidth: 1,
   },
   matchedPill: {
-    backgroundColor: '#EAF7EC',
+    borderColor: Colors.after,
+    backgroundColor: Colors.surfaceRaised,
   },
   takeAfterPill: {
+    borderColor: Colors.primary,
     backgroundColor: Colors.primary,
   },
   unavailablePill: {
+    borderColor: Colors.border,
     backgroundColor: Colors.surfaceMuted,
   },
   actionPillText: {
@@ -728,15 +676,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     backgroundColor: Colors.surface,
   },
-  emptyIcon: {
-    width: 76,
-    height: 76,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 38,
-    backgroundColor: Colors.primarySoft,
-    marginBottom: Spacing.sm,
-  },
   emptyTitle: {
     color: Colors.text,
     fontSize: 21,
@@ -755,12 +694,12 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 760,
     alignSelf: 'center',
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 20,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.md,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.surfaceRaised,
   },
   errorBanner: {
     flexDirection: 'row',

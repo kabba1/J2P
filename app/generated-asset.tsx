@@ -358,7 +358,7 @@ export default function GeneratedAssetScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Open Settings"
                 onPress={() => void openSettings()}
-                style={({ pressed }) => pressed && styles.pressed}>
+                style={({ pressed }) => [styles.settingsAction, pressed && styles.pressed]}>
                 <Text style={styles.settingsLink}>Open Settings</Text>
               </Pressable>
             ) : null}
@@ -385,9 +385,7 @@ export default function GeneratedAssetScreen() {
         </View>
 
         <View style={styles.versionCard}>
-          <View style={styles.versionIcon}>
-            <Ionicons name="copy-outline" size={24} color={Colors.primary} />
-          </View>
+          <Ionicons name="copy-outline" size={24} color={Colors.primary} />
           <View style={styles.versionText}>
             <Text style={styles.versionTitle}>Want a different version?</Text>
             <Text style={styles.versionCaption}>
@@ -452,7 +450,7 @@ const styles = StyleSheet.create({
     maxWidth: 760,
     alignSelf: 'center',
     gap: Spacing.lg,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 20,
     paddingBottom: Spacing.xxl,
   },
   heading: {
@@ -475,21 +473,16 @@ const styles = StyleSheet.create({
   },
   previewCard: {
     overflow: 'hidden',
-    padding: Spacing.md,
+    padding: 0,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: Radius.lg,
-    backgroundColor: Colors.surface,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 3,
+    backgroundColor: Colors.background,
   },
   assetImage: {
     width: '100%',
     alignSelf: 'center',
-    borderRadius: Radius.md,
+    borderRadius: 0,
     backgroundColor: Colors.surfaceMuted,
   },
   missingImage: {
@@ -516,7 +509,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: Radius.md,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surfaceRaised,
   },
   metadataRow: {
     minHeight: 58,
@@ -575,10 +568,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
     padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.after,
     borderRadius: Radius.md,
-    backgroundColor: '#E9F7EC',
+    backgroundColor: Colors.surfaceRaised,
   },
   errorBanner: {
+    borderColor: Colors.danger,
     backgroundColor: Colors.dangerSoft,
   },
   messageText: {
@@ -595,6 +591,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '800',
   },
+  settingsAction: {
+    minHeight: 44,
+    justifyContent: 'center',
+  },
   versionCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -604,14 +604,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     borderRadius: Radius.md,
     backgroundColor: Colors.surface,
-  },
-  versionIcon: {
-    width: 46,
-    height: 46,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 23,
-    backgroundColor: Colors.primarySoft,
   },
   versionText: {
     flex: 1,
@@ -630,7 +622,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   versionButton: {
-    minHeight: 42,
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Spacing.md,

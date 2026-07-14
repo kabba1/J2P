@@ -118,9 +118,6 @@ export default function ContentScreen() {
         contentContainerStyle={styles.content}
         ListHeaderComponent={
           <View style={styles.header}>
-            <View style={styles.headerIcon}>
-              <Ionicons name="layers" size={26} color={Colors.primary} />
-            </View>
             <View style={styles.headerText}>
               <Text style={styles.title}>Content</Text>
               <Text style={styles.subtitle}>
@@ -137,7 +134,8 @@ export default function ContentScreen() {
               accessibilityLabel="Open Settings"
               onPress={() => router.push('/settings')}
               style={({ pressed }) => [styles.settingsButton, pressed && styles.pressed]}>
-              <Ionicons name="settings-outline" size={24} color={Colors.text} />
+              <Ionicons name="settings-outline" size={20} color={Colors.text} />
+              <Text style={styles.settingsLabel}>Settings</Text>
             </Pressable>
           </View>
         }
@@ -146,9 +144,7 @@ export default function ContentScreen() {
             <ActivityIndicator color={Colors.primary} size="large" style={styles.loader} />
           ) : (
             <View style={styles.empty}>
-              <View style={styles.emptyIcon}>
-                <Ionicons name="images-outline" size={38} color={Colors.primary} />
-              </View>
+              <Ionicons name="images-outline" size={38} color={Colors.primary} />
               <Text style={styles.emptyTitle}>No generated posts yet</Text>
               <Text style={styles.emptyMessage}>
                 Open a saved Before &amp; After pair and tap Create Post to make the first one.
@@ -203,7 +199,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignSelf: 'center',
     gap: Spacing.lg,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 20,
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.xxl,
   },
@@ -221,14 +217,6 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     marginBottom: Spacing.sm,
   },
-  headerIcon: {
-    width: 48,
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 24,
-    backgroundColor: Colors.primarySoft,
-  },
   headerText: {
     flex: 1,
     minWidth: 0,
@@ -236,12 +224,20 @@ const styles = StyleSheet.create({
   settingsButton: {
     minWidth: TouchTarget.minimum,
     minHeight: TouchTarget.minimum,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: Spacing.md,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: Radius.md,
     backgroundColor: Colors.surfaceRaised,
+  },
+  settingsLabel: {
+    color: Colors.text,
+    fontSize: 13,
+    fontWeight: '700',
   },
   title: {
     color: Colors.text,
@@ -279,21 +275,13 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     backgroundColor: Colors.surface,
   },
-  emptyIcon: {
-    width: 76,
-    height: 76,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 38,
-    backgroundColor: Colors.primarySoft,
-  },
   emptyTitle: {
     color: Colors.text,
     fontSize: 21,
     lineHeight: 27,
     fontWeight: '800',
     textAlign: 'center',
-    marginTop: Spacing.lg,
+    marginTop: Spacing.md,
   },
   emptyMessage: {
     maxWidth: 330,

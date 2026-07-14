@@ -6,6 +6,7 @@ import { Colors, Radius, Spacing } from '@/constants/theme';
 type PhotoMetadataFormProps = {
   shotName: string;
   note: string;
+  embedded?: boolean;
   onChangeShotName: (value: string) => void;
   onChangeNote: (value: string) => void;
 };
@@ -13,11 +14,12 @@ type PhotoMetadataFormProps = {
 export function PhotoMetadataForm({
   shotName,
   note,
+  embedded = false,
   onChangeShotName,
   onChangeNote,
 }: PhotoMetadataFormProps) {
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, embedded && styles.embedded]}>
       <View style={styles.fieldRow}>
         <Ionicons name="pricetag-outline" size={23} color={Colors.primary} />
         <View style={styles.fieldContent}>
@@ -28,7 +30,7 @@ export function PhotoMetadataForm({
             maxLength={80}
             onChangeText={onChangeShotName}
             placeholder="Living Room Wide (optional)"
-            placeholderTextColor="#9AA3B2"
+            placeholderTextColor={Colors.textTertiary}
             returnKeyType="next"
             style={styles.input}
             value={shotName}
@@ -45,7 +47,7 @@ export function PhotoMetadataForm({
             multiline
             onChangeText={onChangeNote}
             placeholder="Add a note about this photo (optional)"
-            placeholderTextColor="#9AA3B2"
+            placeholderTextColor={Colors.textTertiary}
             style={[styles.input, styles.noteInput]}
             textAlignVertical="top"
             value={note}
@@ -59,44 +61,50 @@ export function PhotoMetadataForm({
 
 const styles = StyleSheet.create({
   card: {
+    gap: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
-    paddingHorizontal: Spacing.lg,
+    padding: Spacing.lg,
+  },
+  embedded: {
+    borderWidth: 0,
+    borderRadius: 0,
+    backgroundColor: Colors.surface,
   },
   fieldRow: {
-    minHeight: 82,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: Spacing.md,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
   },
   noteRow: {
     alignItems: 'flex-start',
-    borderBottomWidth: 0,
   },
   fieldContent: {
     flex: 1,
+    gap: 6,
   },
   label: {
-    color: Colors.textMuted,
+    color: Colors.text,
     fontSize: 13,
     lineHeight: 18,
     fontWeight: '600',
   },
   input: {
     minHeight: 44,
-    paddingVertical: 0,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.sm,
+    backgroundColor: Colors.surfaceRaised,
     color: Colors.text,
     fontSize: 16,
     lineHeight: 22,
   },
   noteInput: {
-    minHeight: 72,
-    paddingTop: Spacing.sm,
+    minHeight: 88,
   },
   count: {
     color: Colors.textMuted,

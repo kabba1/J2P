@@ -353,7 +353,7 @@ export default function PairDetailScreen() {
               <Image
                 accessibilityLabel="Latest generated Before and After post"
                 cachePolicy="memory-disk"
-                contentFit="cover"
+                contentFit="contain"
                 source={{ uri: latestAsset.localUri }}
                 style={styles.latestAssetThumbnail}
               />
@@ -448,11 +448,11 @@ const styles = StyleSheet.create({
     maxWidth: 760,
     alignSelf: 'center',
     gap: Spacing.lg,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 20,
     paddingBottom: Spacing.xxl,
   },
   titleBlock: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   jobName: {
     maxWidth: '100%',
@@ -465,7 +465,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     lineHeight: 30,
     fontWeight: '800',
-    textAlign: 'center',
     marginTop: Spacing.xs,
   },
   matchedBadge: {
@@ -475,7 +474,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.pill,
-    backgroundColor: '#E9F7EC',
+    borderWidth: 1,
+    borderColor: Colors.after,
+    backgroundColor: Colors.surfaceRaised,
     marginTop: Spacing.sm,
   },
   matchedText: {
@@ -488,11 +489,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.xs,
     padding: Spacing.xs,
+    borderWidth: 1,
+    borderColor: Colors.border,
     borderRadius: Radius.md,
-    backgroundColor: Colors.surfaceMuted,
+    backgroundColor: Colors.surfaceRaised,
   },
   modeButton: {
     flex: 1,
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: Radius.sm,
@@ -509,11 +513,12 @@ const styles = StyleSheet.create({
     color: Colors.onPrimary,
   },
   comparisonCard: {
-    padding: Spacing.md,
+    overflow: 'hidden',
+    padding: 0,
     borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surfaceRaised,
   },
   detailsCard: {
     flexDirection: 'row',
@@ -522,7 +527,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Colors.border,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surfaceRaised,
   },
   contentSummaryCard: {
     gap: Spacing.md,
@@ -577,7 +582,7 @@ const styles = StyleSheet.create({
     width: 74,
     height: 74,
     borderRadius: Radius.sm,
-    backgroundColor: Colors.border,
+    backgroundColor: Colors.background,
   },
   latestAssetText: {
     flex: 1,
