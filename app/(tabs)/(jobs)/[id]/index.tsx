@@ -24,21 +24,28 @@ import { useMedia } from '@/state/media-context';
 import { GeneratedAsset } from '@/types/generated-asset';
 import { MediaStage } from '@/types/media';
 import { formatDate } from '@/utils/format-date';
+import {
+  getNextCaptureStage,
+  selectLatestJobMedia,
+} from '@/utils/job-dashboard-presentation';
+import { stageLabel } from '@/utils/media-stage';
 
-type DetailRowProps = {
+type MetadataRowProps = {
   icon: ComponentProps<typeof Ionicons>['name'];
-  label: string;
   value: string;
 };
 
-function DetailRow({ icon, label, value }: DetailRowProps) {
+const stageColors = {
+  before: Colors.before,
+  progress: Colors.progress,
+  after: Colors.after,
+} as const;
+
+function MetadataRow({ icon, value }: MetadataRowProps) {
   return (
     <View style={styles.detailRow}>
-      <Ionicons name={icon} size={21} color={Colors.primary} />
-      <View style={styles.detailText}>
-        <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={styles.detailValue}>{value}</Text>
-      </View>
+      <Ionicons name={icon} size={19} color={Colors.textMuted} />
+      <Text style={styles.detailValue}>{value}</Text>
     </View>
   );
 }
@@ -54,7 +61,7 @@ export default function JobDashboardScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const { jobs, loading, archiveJob, restoreJob, deleteJob } = useJobs();
-  const { countsForJob, refreshJob } = useMedia();
+  const { media, countsForJob, fileExists, refreshJob } = useMedia();
   const {
     assetsForJob,
     refreshJob: refreshGeneratedAssets,
@@ -67,14 +74,35 @@ export default function JobDashboardScreen() {
   const [lifecycleBusy, setLifecycleBusy] = useState(false);
   const [lifecycleError, setLifecycleError] = useState<string>();
   const [jobOptionsExpanded, setJobOptionsExpanded] = useState(false);
+  const [unavailableMediaIds, setUnavailableMediaIds] = useState<Set<string>>(new Set());
+
+  const markMediaUnavailable = useCallback((mediaId: string) => {
+    setUnavailableMediaIds((current) => {
+      if (current.has(mediaId)) return current;
+      return new Set([...current, mediaId]);
+    });
+  }, []);
+
+  const refreshDashboardMedia = useCallback(async (jobId: string) => {
+    const records = await refreshJob(jobId);
+    const checks = await Promise.all(
+      records.map(async (item) => ({
+        id: item.id,
+        exists: await fileExists(item.localUri).catch(() => false),
+      })),
+    );
+    setUnavailableMediaIds(
+      new Set(checks.filter((check) => !check.exists).map((check) => check.id)),
+    );
+  }, [fileExists, refreshJob]);
 
   useFocusEffect(
     useCallback(() => {
       if (id) {
-        void refreshJob(id).catch(() => undefined);
+        void refreshDashboardMedia(id).catch(() => undefined);
         void refreshGeneratedAssets(id).catch(() => undefined);
       }
-    }, [id, refreshGeneratedAssets, refreshJob]),
+    }, [id, refreshDashboardMedia, refreshGeneratedAssets]),
   );
 
   const openGallery = (stage: MediaStage) => {
@@ -182,6 +210,13 @@ export default function JobDashboardScreen() {
 
   const counts = countsForJob(job.id);
   const totalPhotos = counts.before + counts.progress + counts.after;
+  const latestMedia = selectLatestJobMedia(media, job.id);
+  const recentMedia = media
+    .filter((item) => item.jobId === job.id)
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+    .slice(0, 3);
+  const nextCaptureStage = getNextCaptureStage(counts);
+  const nextCaptureLabel = stageLabel(nextCaptureStage);
   const generatedAssets = assetsForJob(job.id);
   const latestGeneratedAsset = generatedAssets[0];
 
@@ -195,12 +230,44 @@ export default function JobDashboardScreen() {
       />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.hero}>
-          <View style={styles.heroIcon}>
-            <Ionicons name="briefcase" size={31} color={Colors.primary} />
+          <View style={styles.heroMedia}>
+            {latestMedia && !unavailableMediaIds.has(latestMedia.id) ? (
+              <Image
+                accessible={false}
+                cachePolicy="memory-disk"
+                contentFit="cover"
+                onError={() => markMediaUnavailable(latestMedia.id)}
+                source={{ uri: latestMedia.localUri }}
+                style={styles.heroImage}
+              />
+            ) : (
+              <View style={styles.heroFallback}>
+                <Ionicons name="camera-outline" size={54} color={Colors.textMuted} />
+                {latestMedia ? (
+                  <Text style={styles.heroFallbackText}>Photo unavailable</Text>
+                ) : (
+                  <Text style={styles.heroFallbackText}>No job photos yet</Text>
+                )}
+              </View>
+            )}
+            {latestMedia && !unavailableMediaIds.has(latestMedia.id) ? (
+              <View style={styles.heroScrim} />
+            ) : null}
           </View>
-          <View style={styles.heroText}>
+          <View style={styles.heroContent}>
             <Text style={styles.jobName}>{job.name}</Text>
-            {job.serviceType ? <Text style={styles.serviceType}>{job.serviceType}</Text> : null}
+            <View style={styles.heroMetadata}>
+              {job.serviceType ? (
+                <MetadataRow icon="construct-outline" value={job.serviceType} />
+              ) : null}
+              {job.customer ? (
+                <MetadataRow icon="person-outline" value={job.customer} />
+              ) : null}
+              {job.address ? (
+                <MetadataRow icon="location-outline" value={job.address} />
+              ) : null}
+              <MetadataRow icon="calendar-outline" value={formatDate(job.createdAt)} />
+            </View>
           </View>
         </View>
 
@@ -239,26 +306,20 @@ export default function JobDashboardScreen() {
           </View>
         ) : null}
 
-        <View style={styles.detailsCard}>
-          {job.customer ? (
-            <DetailRow icon="person-outline" label="Customer" value={job.customer} />
-          ) : null}
-          {job.address ? (
-            <DetailRow icon="location-outline" label="Address" value={job.address} />
-          ) : null}
-          {job.serviceType ? (
-            <DetailRow icon="construct-outline" label="Service" value={job.serviceType} />
-          ) : null}
-          <DetailRow icon="calendar-outline" label="Created" value={formatDate(job.createdAt)} />
-          {job.notes ? (
-            <DetailRow icon="document-text-outline" label="Notes" value={job.notes} />
-          ) : null}
-        </View>
+        {job.notes ? (
+          <View style={styles.notesRegion}>
+            <View style={styles.notesHeader}>
+              <Ionicons name="document-text-outline" size={19} color={Colors.textMuted} />
+              <Text style={styles.notesTitle}>Job notes</Text>
+            </View>
+            <Text style={styles.notesText}>{job.notes}</Text>
+          </View>
+        ) : null}
 
         <View style={styles.sectionHeader}>
           <View>
-            <Text style={styles.sectionTitle}>Capture Progress</Text>
-            <Text style={styles.sectionSubtitle}>Keep every job stage organized.</Text>
+            <Text style={styles.sectionTitle}>Capture progress</Text>
+            <Text style={styles.sectionSubtitle}>Open any stage to view or add photos.</Text>
           </View>
           <Text style={styles.totalCount}>
             {totalPhotos} {totalPhotos === 1 ? 'photo' : 'photos'}
@@ -271,11 +332,13 @@ export default function JobDashboardScreen() {
             count={counts.before}
             onPress={() => openGallery('before')}
           />
+          <View style={styles.stageDivider} />
           <StageCard
             stage="Progress"
             count={counts.progress}
             onPress={() => openGallery('progress')}
           />
+          <View style={styles.stageDivider} />
           <StageCard
             stage="After"
             count={counts.after}
@@ -283,9 +346,96 @@ export default function JobDashboardScreen() {
           />
         </View>
 
+        <View style={styles.recentSection}>
+          <View style={styles.recentHeader}>
+            <Text style={styles.sectionTitle}>Recent shots</Text>
+            {recentMedia.length > 0 ? (
+              <Text style={styles.recentCount}>
+                Latest {recentMedia.length}
+              </Text>
+            ) : null}
+          </View>
+          {recentMedia.length > 0 ? (
+            <View style={styles.recentList}>
+              {recentMedia.map((item) => (
+                <Pressable
+                  key={item.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Open ${item.shotName || `${stageLabel(item.stage)} photo`}${
+                    unavailableMediaIds.has(item.id) ? '. Photo unavailable' : ''
+                  }`}
+                  accessibilityHint="View or manage this photo"
+                  onPress={() =>
+                    router.push({
+                      pathname: '/media',
+                      params: { mediaId: item.id, jobId: job.id },
+                    })
+                  }
+                  style={({ pressed }) => [
+                    styles.recentRow,
+                    pressed && styles.generatedPressed,
+                  ]}>
+                  {unavailableMediaIds.has(item.id) ? (
+                    <View style={styles.recentThumbnailFallback}>
+                      <Ionicons name="image-outline" size={25} color={Colors.textTertiary} />
+                    </View>
+                  ) : (
+                    <Image
+                      accessible={false}
+                      cachePolicy="memory-disk"
+                      contentFit="cover"
+                      onError={() => markMediaUnavailable(item.id)}
+                      source={{ uri: item.localUri }}
+                      style={styles.recentThumbnail}
+                    />
+                  )}
+                  <View style={styles.recentText}>
+                    <Text numberOfLines={1} style={styles.recentTitle}>
+                      {item.shotName || 'Untitled photo'}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.recentStage,
+                        { color: stageColors[item.stage] },
+                      ]}>
+                      {stageLabel(item.stage)}
+                    </Text>
+                    <Text style={styles.recentDate}>{formatDate(item.createdAt)}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={21} color={Colors.textTertiary} />
+                </Pressable>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.recentEmpty}>
+              <Ionicons name="camera-outline" size={25} color={Colors.textTertiary} />
+              <Text style={styles.recentEmptyText}>
+                Your latest job photos will appear here after capture.
+              </Text>
+            </View>
+          )}
+        </View>
+
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Match After photos"
+          accessibilityLabel={`Continue capture. Next: ${nextCaptureLabel}`}
+          accessibilityHint={`Open the ${nextCaptureLabel} photo gallery`}
+          onPress={() => openGallery(nextCaptureStage)}
+          style={({ pressed }) => [
+            styles.continueCaptureButton,
+            pressed && styles.continueCapturePressed,
+          ]}>
+          <Ionicons name="camera" size={27} color={Colors.onPrimary} />
+          <View style={styles.continueCaptureText}>
+            <Text style={styles.continueCaptureTitle}>Continue capture</Text>
+            <Text style={styles.continueCaptureSubtitle}>Next: {nextCaptureLabel}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={23} color={Colors.onPrimary} />
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Match after photos"
           accessibilityHint="Open the list of Before photos that need matching After photos"
           onPress={openAfterQueue}
           style={({ pressed }) => [styles.matchCard, pressed && styles.matchCardPressed]}>
@@ -293,7 +443,7 @@ export default function JobDashboardScreen() {
             <Ionicons name="copy-outline" size={27} color={Colors.primary} />
           </View>
           <View style={styles.matchText}>
-            <Text style={styles.matchTitle}>Match After Photos</Text>
+            <Text style={styles.matchTitle}>Match after photos</Text>
             <Text style={styles.matchMessage}>
               Recreate each Before angle with a guided camera overlay.
             </Text>
@@ -308,9 +458,6 @@ export default function JobDashboardScreen() {
               <Text style={styles.sectionSubtitle}>
                 {generatedAssets.length} {generatedAssets.length === 1 ? 'post' : 'posts'} from this job
               </Text>
-            </View>
-            <View style={styles.generatedCountBadge}>
-              <Text style={styles.generatedCountText}>{generatedAssets.length}</Text>
             </View>
           </View>
 
@@ -364,27 +511,6 @@ export default function JobDashboardScreen() {
             <Text style={styles.openContentLabel}>Open Content</Text>
           </Pressable>
         </View>
-
-        <View style={styles.shotSection}>
-          <Text style={styles.sectionTitle}>Shot List</Text>
-          <View style={styles.emptyShots}>
-            <Ionicons name="images-outline" size={34} color={Colors.textMuted} />
-            <Text style={styles.emptyShotTitle}>
-              {totalPhotos === 0 ? 'No shots yet' : `${totalPhotos} saved ${totalPhotos === 1 ? 'photo' : 'photos'}`}
-            </Text>
-            <Text style={styles.emptyShotMessage}>
-              {totalPhotos === 0
-                ? 'Choose Before, Progress, or After to start documenting this job.'
-                : 'Open a stage above to view, edit, or add photos.'}
-            </Text>
-          </View>
-        </View>
-
-        <PrimaryButton
-          label="Start Capture"
-          icon="camera"
-          onPress={() => openGallery('before')}
-        />
 
         <View style={styles.jobOptionsSection}>
           {!job.archivedAt && lifecycleError ? (
@@ -512,39 +638,61 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 760,
     alignSelf: 'center',
-    padding: Spacing.lg,
+    padding: 20,
     paddingBottom: Spacing.xxl,
-    gap: Spacing.lg,
+    gap: 20,
   },
   hero: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    width: 'auto',
+    marginHorizontal: -20,
+    marginTop: -20,
+    backgroundColor: Colors.surfaceRaised,
   },
-  heroIcon: {
-    width: 68,
-    height: 68,
-    borderRadius: Radius.md,
+  heroMedia: {
+    width: '100%',
+    minHeight: 240,
+    maxHeight: 420,
+    aspectRatio: 4 / 3,
+    overflow: 'hidden',
+    backgroundColor: Colors.surfaceRaised,
+  },
+  heroImage: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Colors.surfaceRaised,
+  },
+  heroFallback: {
+    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.primarySoft,
+    gap: Spacing.sm,
+    backgroundColor: Colors.surfaceRaised,
   },
-  heroText: {
-    flex: 1,
+  heroFallbackText: {
+    color: Colors.textMuted,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  heroScrim: {
+    ...StyleSheet.absoluteFillObject,
+    pointerEvents: 'none',
+    backgroundColor: 'rgba(15, 20, 27, 0.22)',
+  },
+  heroContent: {
+    gap: Spacing.md,
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.surface,
   },
   jobName: {
     color: Colors.text,
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: 32,
+    lineHeight: 38,
     fontWeight: '800',
-    letterSpacing: -0.5,
+    letterSpacing: -0.7,
   },
-  serviceType: {
-    color: Colors.textMuted,
-    fontSize: 16,
-    lineHeight: 23,
-    marginTop: Spacing.xs,
+  heroMetadata: {
+    gap: Spacing.sm,
   },
   archivedBanner: {
     flexDirection: 'row',
@@ -553,8 +701,8 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: '#B7D1FF',
-    backgroundColor: Colors.primarySoft,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surfaceRaised,
   },
   archivedText: {
     flex: 1,
@@ -589,35 +737,44 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
   },
-  detailsCard: {
+  notesRegion: {
+    gap: Spacing.sm,
+    padding: Spacing.lg,
     borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
-    paddingHorizontal: Spacing.lg,
   },
-  detailRow: {
-    minHeight: 64,
+  notesHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: Spacing.md,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
-  detailText: {
-    flex: 1,
-  },
-  detailLabel: {
+  notesTitle: {
     color: Colors.textMuted,
     fontSize: 12,
     lineHeight: 17,
-    fontWeight: '600',
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
+  notesText: {
+    color: Colors.text,
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  detailRow: {
+    minHeight: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
   detailValue: {
-    color: Colors.text,
-    fontSize: 16,
-    lineHeight: 23,
+    flexShrink: 1,
+    color: Colors.textMuted,
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '600',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -643,35 +800,160 @@ const styles = StyleSheet.create({
   },
   stageRow: {
     flexDirection: 'row',
-    gap: Spacing.sm,
+    overflow: 'hidden',
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
   },
-  matchCard: {
-    minHeight: 88,
+  stageDivider: {
+    width: StyleSheet.hairlineWidth,
+    alignSelf: 'stretch',
+    marginVertical: Spacing.lg,
+    backgroundColor: Colors.border,
+  },
+  recentSection: {
+    gap: Spacing.md,
+  },
+  recentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.md,
+  },
+  recentCount: {
+    color: Colors.textTertiary,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: '700',
+  },
+  recentList: {
+    overflow: 'hidden',
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  recentRow: {
+    minHeight: 92,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    padding: Spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
+  },
+  recentThumbnail: {
+    width: 88,
+    height: 72,
+    borderRadius: Radius.sm,
+    backgroundColor: Colors.surfaceRaised,
+  },
+  recentThumbnailFallback: {
+    width: 88,
+    height: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surfaceRaised,
+  },
+  recentText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  recentTitle: {
+    color: Colors.text,
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: '800',
+  },
+  recentStage: {
+    fontSize: 11,
+    lineHeight: 16,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    marginTop: 2,
+  },
+  recentDate: {
+    color: Colors.textMuted,
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 1,
+  },
+  recentEmpty: {
+    minHeight: 72,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
     padding: Spacing.lg,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: '#B7D1FF',
-    backgroundColor: Colors.primarySoft,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  recentEmptyText: {
+    flex: 1,
+    color: Colors.textMuted,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  continueCaptureButton: {
+    minHeight: 72,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.primary,
+  },
+  continueCapturePressed: {
+    backgroundColor: Colors.primaryPressed,
+  },
+  continueCaptureText: {
+    flex: 1,
+  },
+  continueCaptureTitle: {
+    color: Colors.onPrimary,
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: '800',
+  },
+  continueCaptureSubtitle: {
+    color: Colors.onPrimary,
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 2,
+  },
+  matchCard: {
+    minHeight: 72,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surface,
   },
   matchCardPressed: {
     opacity: 0.72,
   },
   matchIcon: {
-    width: 48,
-    height: 48,
+    width: 32,
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 24,
-    backgroundColor: Colors.surface,
   },
   matchText: {
     flex: 1,
   },
   matchTitle: {
-    color: Colors.text,
+    color: Colors.primary,
     fontSize: 17,
     lineHeight: 22,
     fontWeight: '800',
@@ -684,31 +966,15 @@ const styles = StyleSheet.create({
   },
   generatedSection: {
     gap: Spacing.md,
-    padding: Spacing.lg,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
+    paddingTop: 20,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
   },
   generatedHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: Spacing.md,
-  },
-  generatedCountBadge: {
-    minWidth: 38,
-    minHeight: 38,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.sm,
-    borderRadius: Radius.pill,
-    backgroundColor: Colors.primarySoft,
-  },
-  generatedCountText: {
-    color: Colors.primary,
-    fontSize: 16,
-    fontWeight: '800',
   },
   latestGeneratedRow: {
     minHeight: 92,
@@ -781,31 +1047,6 @@ const styles = StyleSheet.create({
   },
   generatedPressed: {
     opacity: 0.64,
-  },
-  shotSection: {
-    gap: Spacing.md,
-  },
-  emptyShots: {
-    alignItems: 'center',
-    gap: Spacing.xs,
-    padding: Spacing.xl,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-  },
-  emptyShotTitle: {
-    color: Colors.text,
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  emptyShotMessage: {
-    maxWidth: 300,
-    color: Colors.textMuted,
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: 'center',
   },
   jobOptionsSection: {
     gap: Spacing.md,
