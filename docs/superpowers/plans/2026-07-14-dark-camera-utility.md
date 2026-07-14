@@ -22,8 +22,6 @@
 ### Task 1: Lock the visual and navigation contracts
 
 **Files:**
-- Create: `tests/ui-theme-contract.test.cjs`
-- Create: `tests/ui-navigation-contract.test.cjs`
 - Create: `tests/job-dashboard-presentation.test.cjs`
 - Create: `utils/job-dashboard-presentation.ts`
 - Modify: `package.json`
@@ -31,19 +29,18 @@
 **Interfaces:**
 - Produces: `selectLatestJobMedia(media, jobId)`.
 - Produces: `getNextCaptureStage(counts)`.
-- Produces: dark app tokens and a 44-point touch-target token.
 
-- [ ] Write tests for palette contrast, route preservation, three visible tabs,
-  Settings reachability, latest-media selection, and next-stage selection.
-- [ ] Run `npm run test:ui` and confirm the tests fail for missing contracts.
-- [ ] Implement only the pure presentation helpers needed to make their helper
-  tests pass; leave visual production work for later tasks.
-- [ ] Re-run the focused tests and confirm the helper portion passes while UI
-  contract assertions remain red until the relevant screens change.
+- [ ] Write tests for latest-media selection and next-stage selection.
+- [ ] Run the focused test and confirm it fails for the missing helper module.
+- [ ] Implement only the pure presentation helpers needed to pass.
+- [ ] Add the focused test command to `npm test` and confirm the complete task
+  finishes green.
 
 ### Task 2: Build the shared dark app chrome
 
 **Files:**
+- Create: `tests/ui-theme-contract.test.cjs`
+- Create: `tests/ui-navigation-contract.test.cjs`
 - Modify: `constants/theme.ts`
 - Modify: `app/_layout.tsx`
 - Modify: `app/(tabs)/_layout.tsx`
@@ -58,6 +55,10 @@
 - Consumes: semantic dark colors, typography, radii, and touch-target tokens.
 - Preserves: explicit light colors used by exported social images.
 
+- [ ] Write failing contracts for palette contrast, route preservation, three
+  visible tabs, Settings reachability, and 44-point touch targets.
+- [ ] Run the focused contracts and confirm they fail for the intended missing
+  visual/navigation behavior.
 - [ ] Add dark app tokens and explicit export-image tokens.
 - [ ] Switch React Navigation, status bar, and tabs to the approved dark chrome.
 - [ ] Hide only the Settings tab trigger with Expo Router `href: null`; retain
@@ -150,4 +151,3 @@
 - [ ] Mark `design-qa.md` `final result: passed` only when no actionable
   P0/P1/P2 issue remains.
 - [ ] Review the diff, commit, and push the finished branch.
-
