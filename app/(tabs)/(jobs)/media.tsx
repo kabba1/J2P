@@ -21,6 +21,7 @@ import { ScreenHeader } from '@/components/ui/screen-header';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { useJobs } from '@/state/jobs-context';
 import { useMedia } from '@/state/media-context';
+import { usePairs } from '@/state/pairs-context';
 import { JobMedia, MediaStage } from '@/types/media';
 import { formatDateTime } from '@/utils/format-date';
 import { stageLabel } from '@/utils/media-stage';
@@ -35,6 +36,7 @@ export default function MediaDetailScreen() {
   const jobId = Array.isArray(params.jobId) ? params.jobId[0] : params.jobId;
   const { jobs, loading: jobsLoading } = useJobs();
   const { media, getMedia, updateMedia, deleteMedia, fileExists } = useMedia();
+  const { pairs, refreshJobPairs } = usePairs();
   const job = jobs.find((candidate) => candidate.id === jobId);
   const cached = media.find((item) => item.id === mediaId);
   const [record, setRecord] = useState<JobMedia | undefined>(cached);
@@ -53,7 +55,10 @@ export default function MediaDetailScreen() {
     setLoading(true);
     setError(undefined);
     try {
-      const loaded = await getMedia(mediaId);
+      const [loaded] = await Promise.all([
+        getMedia(mediaId),
+        jobId ? refreshJobPairs(jobId) : Promise.resolve([]),
+      ]);
       setRecord(loaded);
       if (loaded) {
         setMissingFile(!(await fileExists(loaded.localUri)));
@@ -63,7 +68,7 @@ export default function MediaDetailScreen() {
     } finally {
       setLoading(false);
     }
-  }, [fileExists, getMedia, mediaId]);
+  }, [fileExists, getMedia, jobId, mediaId, refreshJobPairs]);
 
   useFocusEffect(
     useCallback(() => {
@@ -143,6 +148,10 @@ export default function MediaDetailScreen() {
     );
   }
 
+  const activePair = pairs.find(
+    (pair) => pair.beforeMediaId === record.id || pair.afterMediaId === record.id,
+  );
+
   return (
     <ScreenContainer>
       <ScreenHeader title="Photo Details" onBack={() => router.back()} />
@@ -188,6 +197,7 @@ export default function MediaDetailScreen() {
             {stage !== record.stage ? (
               <Text style={styles.stageHint}>
                 This photo will move from {stageLabel(record.stage)} to {stageLabel(stage)}.
+                {activePair ? ' Its Before and After pairing will also be removed.' : ''}
               </Text>
             ) : null}
           </View>
@@ -225,7 +235,11 @@ export default function MediaDetailScreen() {
       <ConfirmDialog
         visible={confirmDelete}
         title="Delete photo?"
-        message="This photo and its local file will be permanently removed from this job."
+        message={
+          activePair
+            ? 'This photo, its local file, and its Before and After pairing will be permanently removed from this job.'
+            : 'This photo and its local file will be permanently removed from this job.'
+        }
         confirmLabel="Delete"
         destructive
         busy={deleting}

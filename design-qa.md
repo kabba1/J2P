@@ -1,70 +1,48 @@
-# Milestone 2 design QA
+# Milestone 4 static-post design QA
 
-## Comparison target
+This is historical Milestone 4 browser visual evidence. The current launch
+authority is `docs/ANDROID_LAUNCH_PLAN.md`; native and edge-case status lives in
+`docs/MILESTONE_4.md`.
 
-- Source visual truth:
-  - `C:\Users\Mitch\Downloads\image-gen-4.png` (Before / Progress / After gallery)
-  - `C:\Users\Mitch\Downloads\image-gen-1(1).png` (Capture Before camera)
-  - `C:\Users\Mitch\Downloads\image-gen-2(1).png` (Review Photo)
-- Browser-rendered implementation evidence: `S:\App Projects\before-after-app\design-qa-artifacts\stage-gallery-390x844.png`
-- Viewport: 390 x 844, with an additional overflow check at 320 x 700
-- Compared state: Johnson House Interior Repaint, Before gallery, zero saved photos
+## Evidence
 
-The gallery mockup contains saved-photo cards while the acceptance flow explicitly requires a useful empty gallery. The comparison therefore evaluates the same gallery shell, hierarchy, navigation, segmented control, action placement, and visual language while treating the empty state as an intentional product state.
+- Source visual direction: `C:\Users\Mitch\Downloads\image-gen-6.png`
+- Browser-rendered implementation: `S:\App Projects\before-after-app\design-qa-artifacts\m4-content-empty-viewport.jpg`
+- Viewport: 412 x 915 CSS pixels
+- State: empty Content library with no generated posts
+- State caveat: the supplied rough reference shows a populated Content Pack, while the implementation evidence shows the milestone's empty Content library. The comparison evaluates the shared visual language, hierarchy, spacing, navigation, and the implementation-specific empty state without claiming populated-card fidelity.
 
-## Full-view comparison evidence
+## Source and implementation comparison
 
-The source and rendered screenshot were opened together and compared in the same visual pass.
+The source and implementation were opened together in one comparison input. Both use a white/light-neutral mobile surface, large dark heading, saturated blue selection color, rounded bordered cards, restrained supporting copy, and a persistent four-item bottom tab bar. The implementation follows the repository's established JobToPost tokens and icon family instead of copying the reference's fake iPhone chrome or deferred Content Pack features.
 
-- Typography: the implementation uses the existing native system-font stack with the same dark, high-weight title hierarchy and muted supporting text. The empty-state headline and bottom action remain readable at the target width.
-- Spacing and layout: the header, three-stage segmented control, content region, persistent bottom action, and tab bar follow the source's vertical order and generous spacing. The implementation uses Android safe-area-aware layout rather than the mockup's fake iPhone chrome.
-- Colors and tokens: the near-white background, dark text, muted gray labels, subtle borders, and bright blue selected/action states align with the source direction and the existing JobToPost tokens.
-- Image quality: the tested state intentionally has no user photo assets. The empty-state camera icon uses the existing Ionicons family; saved-photo items use real local image URIs rather than placeholders.
-- Copy and content: stage-specific count, empty-state copy, and `Take Before Photo` action clearly describe the next step. The copy is coherent without relying on the design prompt.
-- Responsiveness: at 320 px wide, `window.innerWidth`, `document.body.scrollWidth`, and `document.documentElement.scrollWidth` were all 320 px; no horizontal overflow was present.
+- Typography: the title, empty-state heading, supporting copy, and tab labels are legible and maintain a clear hierarchy at the Pixel-sized viewport.
+- Layout: page gutters, card padding, vertical rhythm, and bottom-tab separation are balanced; no content is clipped or covered by the tab bar.
+- Color and borders: brand blue, dark navy text, muted secondary text, pale icon background, and subtle card border match the supplied direction.
+- Empty-state clarity: the icon and copy clearly explain that a saved Before/After pair is the prerequisite, without advertising deferred captions, reels, carousels, or complete packs.
+- Safe areas: the visible page and persistent navigation remain inside the 412 x 915 viewport with no simulated status bar, device frame, or home indicator.
 
-## Focused-region comparison evidence
+## Interactions tested
 
-A separate crop was not needed because the segmented control, empty-state typography, primary action, and tab bar are all legible in the 390 x 844 implementation screenshot. The source and implementation show the same high-priority controls at full-view scale.
-
-## Primary interactions tested
-
-- Opened an existing job from Jobs Home.
-- Opened the Before gallery from the job dashboard.
-- Switched from Before to Progress in the shared segmented control.
-- Confirmed the route stage parameter, heading, count, empty-state message, and primary action all changed to Progress.
-- Confirmed the 320 px narrow layout has no horizontal overflow.
-- Checked captured browser console errors: none.
-
-The real camera preview and the post-capture Review Photo state are intentionally not simulated in the browser. Their remaining visual and hardware validation must be performed in Expo Go on the Pixel 6a so the implementation never substitutes a fake preview for the device camera.
+- Loaded `/content` at 412 x 915 and verified the empty library plus selected Content tab.
+- Opened `/create-post` without a pair ID and verified the `Pair unavailable` state.
+- Activated `Return to Jobs` and verified deterministic navigation to the Jobs tab.
+- Opened a missing generated-asset route and verified the `Post not found` state.
+- Activated `Open Content` and verified deterministic navigation back to the Content library.
+- Reviewed browser diagnostics: no runtime errors were emitted. React Native Web reported only existing development deprecation warnings for shadow, text-shadow, and pointer-events props.
 
 ## Findings
 
-No actionable P0, P1, or P2 visual findings remain in the browser-verifiable gallery flow.
-
-## Open questions and physical-device checks
-
-- Verify camera permission grant, denial, retry, and Open Settings behavior in Expo Go.
-- Verify the live rear-camera preview, flash availability, camera switching, zoom, portrait/landscape rotation, capture, Review Photo, Retake, Use Photo, and Take Another on the Pixel 6a.
-- Verify accepted photos and metadata survive fully closing and reopening Expo Go.
-
-## Comparison history
-
-- Initial pass: no actionable P0/P1/P2 gallery mismatch was found. No visual fix iteration was required.
-- Implementation hardening after the visual pass: Android hardware Back now only intercepts when a valid unsaved temporary capture exists, and saved metadata preserves the actual capture timestamp. Lint and TypeScript passed after these changes.
-
-## Follow-up polish
-
-- P3: the long real-world job name truncates in the compact gallery back label. This is an acceptable responsive tradeoff and preserves the centered stage title.
-- P3: the reference mockup shows a filter icon, but filtering is not part of Milestone 2 and was intentionally omitted.
+- No actionable P0, P1, or P2 visual or recovery-flow issues were found in the browser-testable states.
+- The user completed the native golden path on the Pixel 6a on 2026-07-13, including post generation, Save to Photos, Android sharing, and force-close persistence. Exact dimensions, crop/orientation quality, permission-denial recovery, repeated-operation stress, and destructive edge cases remain separately open in `docs/MILESTONE_4.md`.
 
 ## Implementation checklist
 
-- [x] Shared responsive stage gallery
-- [x] Stage-specific empty state and capture action
-- [x] Segmented stage switching
-- [x] Pixel-width and narrow-width browser checks
-- [x] No browser console errors in the verified flow
-- [x] Native camera/review verification explicitly deferred to physical hardware
+- [x] Content library empty state is useful and visually consistent.
+- [x] Narrow Android-sized viewport has no visible clipping or overlap.
+- [x] Invalid builder and missing-asset routes provide working recovery actions.
+- [x] Bottom navigation remains usable and the Content selection is clear.
+- [x] Browser diagnostics contain no runtime errors.
+- [x] Exercise the complete native generation and export flow on the Pixel 6a.
 
 final result: passed

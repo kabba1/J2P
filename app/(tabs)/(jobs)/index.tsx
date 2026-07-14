@@ -1,19 +1,37 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  Keyboard,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
-import { EmptyState } from '@/components/ui/empty-state';
 import { JobCard } from '@/components/job-card';
+import { JobStatusFilter } from '@/components/job-status-filter';
+import { EmptyState } from '@/components/ui/empty-state';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { ScreenContainer } from '@/components/ui/screen-container';
-import { Colors, Spacing } from '@/constants/theme';
+import { Colors, Radius, Spacing } from '@/constants/theme';
 import { useJobs } from '@/state/jobs-context';
 import { useMedia } from '@/state/media-context';
+import {
+  filterJobs,
+  JobStatusFilter as JobStatusFilterValue,
+} from '@/utils/job-list';
 
 export default function JobsScreen() {
   const router = useRouter();
   const { jobs, loading, error, refresh } = useJobs();
   const { countsForJob, refreshJobs } = useMedia();
+  const [query, setQuery] = useState('');
+  const [status, setStatus] = useState<JobStatusFilterValue>('active');
 
   useFocusEffect(
     useCallback(() => {
@@ -23,11 +41,59 @@ export default function JobsScreen() {
     }, [jobs, refreshJobs]),
   );
 
+  const activeCount = useMemo(
+    () => jobs.filter((job) => job.archivedAt === undefined).length,
+    [jobs],
+  );
+  const archivedCount = jobs.length - activeCount;
+  const visibleJobs = useMemo(
+    () => filterJobs(jobs, { status, query }),
+    [jobs, query, status],
+  );
+
+  const emptyState = useMemo(() => {
+    if (jobs.length === 0) {
+      return {
+        title: 'Your first job starts here',
+        message:
+          'Create a job now. Before, Progress, and After photos will stay organized together.',
+      };
+    }
+    if (query.trim()) {
+      return {
+        title: 'No matching jobs',
+        message: 'Try a different name, customer, address, or service.',
+      };
+    }
+    if (status === 'archived') {
+      return {
+        title: 'No archived jobs',
+        message: 'Completed jobs you archive will stay safely available here.',
+      };
+    }
+    if (status === 'active') {
+      return {
+        title: 'No active jobs',
+        message: 'Restore an archived job or create a new one to keep capturing.',
+      };
+    }
+    return {
+      title: 'No jobs to show',
+      message: 'Change the current filters or create a new job.',
+    };
+  }, [jobs.length, query, status]);
+
+  const sectionLabel =
+    status === 'active' ? 'Active Jobs' : status === 'archived' ? 'Archived Jobs' : 'All Jobs';
+
   return (
     <ScreenContainer>
       <FlatList
-        data={jobs}
+        data={visibleJobs}
         keyExtractor={(job) => job.id}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        onScrollBeginDrag={Keyboard.dismiss}
         renderItem={({ item }) => (
           <JobCard
             job={item}
@@ -39,7 +105,10 @@ export default function JobsScreen() {
         refreshControl={
           <RefreshControl refreshing={loading && jobs.length > 0} onRefresh={() => void refresh()} />
         }
-        contentContainerStyle={[styles.content, jobs.length === 0 && styles.emptyContent]}
+        contentContainerStyle={[
+          styles.content,
+          visibleJobs.length === 0 && styles.emptyContent,
+        ]}
         ListHeaderComponent={
           <View style={styles.headerBlock}>
             <Text style={styles.wordmark}>
@@ -52,7 +121,46 @@ export default function JobsScreen() {
               onPress={() => router.push('/new')}
               accessibilityHint="Open the new job form"
             />
-            <Text style={styles.sectionTitle}>Recent Jobs</Text>
+
+            <View style={styles.searchContainer}>
+              <Ionicons name="search" size={21} color={Colors.textMuted} />
+              <TextInput
+                accessibilityLabel="Search jobs"
+                autoCapitalize="none"
+                autoCorrect={false}
+                clearButtonMode="while-editing"
+                onChangeText={setQuery}
+                placeholder="Search jobs"
+                placeholderTextColor={Colors.textMuted}
+                returnKeyType="search"
+                style={styles.searchInput}
+                value={query}
+              />
+              {query ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear job search"
+                  hitSlop={8}
+                  onPress={() => setQuery('')}
+                  style={({ pressed }) => [styles.clearButton, pressed && styles.pressed]}>
+                  <Ionicons name="close-circle" size={21} color={Colors.textMuted} />
+                </Pressable>
+              ) : null}
+            </View>
+
+            <JobStatusFilter
+              value={status}
+              activeCount={activeCount}
+              archivedCount={archivedCount}
+              onChange={setStatus}
+            />
+
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionTitle}>{sectionLabel}</Text>
+              <Text style={styles.resultCount}>
+                {visibleJobs.length} {visibleJobs.length === 1 ? 'job' : 'jobs'}
+              </Text>
+            </View>
           </View>
         }
         ListEmptyComponent={
@@ -65,10 +173,21 @@ export default function JobsScreen() {
               <PrimaryButton label="Try Again" onPress={() => void refresh()} />
             </View>
           ) : (
-            <EmptyState
-              title="Your first job starts here"
-              message="Create a job now. Before, Progress, and After photos will stay organized together when capture is added."
-            />
+            <View style={styles.emptyStateWrap}>
+              <EmptyState title={emptyState.title} message={emptyState.message} />
+              {jobs.length > 0 && (query.trim() || status !== 'active') ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear job filters"
+                  onPress={() => {
+                    setQuery('');
+                    setStatus('active');
+                  }}
+                  style={({ pressed }) => [styles.resetButton, pressed && styles.pressed]}>
+                  <Text style={styles.resetLabel}>Show Active Jobs</Text>
+                </Pressable>
+              ) : null}
+            </View>
           )
         }
       />
@@ -109,12 +228,47 @@ const styles = StyleSheet.create({
     marginTop: -Spacing.sm,
     marginBottom: Spacing.sm,
   },
+  searchContainer: {
+    minHeight: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surface,
+  },
+  searchInput: {
+    minHeight: 48,
+    flex: 1,
+    color: Colors.text,
+    fontSize: 16,
+    paddingVertical: 0,
+  },
+  clearButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.md,
+    marginTop: Spacing.sm,
+  },
   sectionTitle: {
     color: Colors.text,
     fontSize: 22,
     lineHeight: 28,
     fontWeight: '700',
-    marginTop: Spacing.md,
+  },
+  resultCount: {
+    color: Colors.textMuted,
+    fontSize: 13,
+    fontWeight: '700',
   },
   separator: {
     height: Spacing.md,
@@ -135,5 +289,26 @@ const styles = StyleSheet.create({
   errorMessage: {
     color: Colors.textMuted,
     textAlign: 'center',
+  },
+  emptyStateWrap: {
+    gap: Spacing.md,
+  },
+  resetButton: {
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surface,
+  },
+  resetLabel: {
+    color: Colors.primary,
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  pressed: {
+    opacity: 0.62,
   },
 });
