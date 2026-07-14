@@ -121,6 +121,9 @@
 - Modify: `app/(tabs)/content.tsx`
 - Modify: `app/create-post.tsx`
 - Modify: `app/generated-asset.tsx`
+- Modify: `app/review.tsx`
+- Modify: `app/(tabs)/(jobs)/media.tsx`
+- Modify: `components/photo-metadata-form.tsx`
 - Modify: `app/(tabs)/settings.tsx`
 
 **Interfaces:**
@@ -129,7 +132,8 @@
 
 - [ ] Apply the dark image-first hierarchy to queue and pair screens.
 - [ ] Add a labeled Settings action to Content.
-- [ ] Restyle content, post creation, generated-asset detail, and Settings.
+- [ ] Restyle review/media detail, content, post creation, generated-asset detail,
+  and Settings.
 - [ ] Verify exported post composition remains unchanged.
 - [ ] Run the complete test suite, lint, TypeScript, and Expo Doctor.
 
