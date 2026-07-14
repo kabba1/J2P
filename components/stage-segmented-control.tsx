@@ -75,6 +75,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   selectedLabel: {
-    color: Colors.surface,
+    color: Colors.onPrimary,
   },
 });

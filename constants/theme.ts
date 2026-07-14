@@ -1,35 +1,48 @@
 export const Colors = {
-  background: '#F7F8FA',
-  surface: '#FFFFFF',
-  surfaceMuted: '#F0F3F7',
-  text: '#0B1220',
-  textMuted: '#697386',
+  background: '#0F141B',
+  surface: '#151B23',
+  surfaceRaised: '#1B2430',
+  surfaceMuted: '#202A36',
+  text: '#F7F9FC',
+  textMuted: '#A5AFBD',
+  textTertiary: '#737E8C',
   primary: '#0868F7',
-  primaryPressed: '#0054D6',
-  primarySoft: '#EAF2FF',
-  border: '#E1E5EA',
-  danger: '#D92D20',
-  dangerSoft: '#FFF1F0',
+  primaryPressed: '#005AD6',
+  primarySoft: '#10294A',
+  border: '#2A323C',
+  danger: '#F04438',
+  dangerSoft: '#35191D',
   before: '#0868F7',
-  progress: '#F57C00',
-  after: '#2E9B42',
-  shadow: '#15233D',
+  progress: '#FF941A',
+  after: '#42B963',
+  shadow: '#000000',
+  onPrimary: '#FFFFFF',
   light: {
-    text: '#0B1220',
-    background: '#F7F8FA',
+    text: '#F7F9FC',
+    background: '#0F141B',
     tint: '#0868F7',
-    icon: '#697386',
-    tabIconDefault: '#697386',
+    icon: '#A5AFBD',
+    tabIconDefault: '#A5AFBD',
     tabIconSelected: '#0868F7',
   },
   dark: {
-    text: '#F7F8FA',
-    background: '#0B1220',
-    tint: '#FFFFFF',
-    icon: '#AAB2C0',
-    tabIconDefault: '#AAB2C0',
-    tabIconSelected: '#FFFFFF',
+    text: '#F7F9FC',
+    background: '#0F141B',
+    tint: '#0868F7',
+    icon: '#A5AFBD',
+    tabIconDefault: '#A5AFBD',
+    tabIconSelected: '#0868F7',
   },
+} as const;
+
+export const ExportColors = {
+  background: '#FFFFFF',
+  surface: '#FFFFFF',
+  surfaceMuted: '#F0F3F7',
+  text: '#0B1220',
+  border: '#E1E5EA',
+  primary: '#0868F7',
+  onPrimary: '#FFFFFF',
 } as const;
 
 export const Spacing = {
@@ -42,8 +55,12 @@ export const Spacing = {
 } as const;
 
 export const Radius = {
-  sm: 10,
-  md: 16,
-  lg: 22,
+  sm: 8,
+  md: 12,
+  lg: 16,
   pill: 999,
+} as const;
+
+export const TouchTarget = {
+  minimum: 44,
 } as const;

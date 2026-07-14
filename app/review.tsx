@@ -235,9 +235,9 @@ export default function ReviewPhotoScreen() {
               onPress={() => void save('use')}
               style={({ pressed }) => [styles.primaryAction, pressed && styles.pressed]}>
               {savingAction === 'use' ? (
-                <ActivityIndicator color={Colors.surface} />
+                <ActivityIndicator color={Colors.onPrimary} />
               ) : (
-                <Ionicons name="checkmark-circle" size={31} color={Colors.surface} />
+                <Ionicons name="checkmark-circle" size={31} color={Colors.onPrimary} />
               )}
               <Text style={styles.primaryTitle}>Use Photo</Text>
               <Text style={styles.primaryCaption}>Keep this photo</Text>
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   primaryTitle: {
-    color: Colors.surface,
+    color: Colors.onPrimary,
     fontSize: 15,
     fontWeight: '800',
     textAlign: 'center',

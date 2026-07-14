@@ -711,7 +711,7 @@ const styles = StyleSheet.create({
     color: Colors.after,
   },
   takeAfterPillText: {
-    color: Colors.surface,
+    color: Colors.onPrimary,
   },
   unavailablePillText: {
     color: Colors.textMuted,

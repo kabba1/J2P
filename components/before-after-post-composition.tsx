@@ -8,7 +8,7 @@ import {
   ViewStyle,
 } from 'react-native';
 
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { ExportColors, Radius, Spacing } from '@/constants/theme';
 import {
   GeneratedAssetFormat,
   GeneratedAssetLayout,
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   composition: {
     width: '100%',
     overflow: 'hidden',
-    backgroundColor: Colors.surfaceMuted,
+    backgroundColor: ExportColors.surfaceMuted,
   },
   photoArea: {
     flex: 1,
@@ -217,10 +217,10 @@ const styles = StyleSheet.create({
   },
   afterLabel: {
     right: Spacing.md,
-    backgroundColor: Colors.primary,
+    backgroundColor: ExportColors.primary,
   },
   labelText: {
-    color: Colors.surface,
+    color: ExportColors.onPrimary,
     fontSize: 12,
     lineHeight: 15,
     fontWeight: '800',
@@ -232,11 +232,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.surface,
+    borderTopColor: ExportColors.border,
+    backgroundColor: ExportColors.surface,
   },
   footerText: {
-    color: Colors.text,
+    color: ExportColors.text,
     fontSize: 13,
     lineHeight: 18,
     fontWeight: '700',

@@ -494,7 +494,7 @@ export default function JobDashboardScreen() {
                   pressed && styles.modalPressed,
                 ]}>
                 {deleting ? (
-                  <ActivityIndicator color={Colors.surface} size="small" />
+                  <ActivityIndicator color={Colors.onPrimary} size="small" />
                 ) : (
                   <Text style={styles.confirmLabel}>Delete</Text>
                 )}
@@ -949,7 +949,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   confirmLabel: {
-    color: Colors.surface,
+    color: Colors.onPrimary,
     fontSize: 16,
     fontWeight: '700',
   },

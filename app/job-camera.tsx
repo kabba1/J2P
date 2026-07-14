@@ -447,7 +447,7 @@ export default function JobCameraScreen() {
             <Ionicons
               name={flash === 'off' ? 'flash-off' : flash === 'auto' ? 'flash' : 'flash'}
               size={24}
-              color={Colors.surface}
+              color={Colors.onPrimary}
             />
             <Text style={styles.controlSmallLabel}>{flash === 'auto' ? 'A' : ''}</Text>
           </Pressable>
@@ -458,7 +458,7 @@ export default function JobCameraScreen() {
               disabled={zoom <= 0}
               onPress={() => setZoom((current) => Math.max(0, Number((current - 0.1).toFixed(1))))}
               style={styles.zoomButton}>
-              <Ionicons name="remove" size={20} color={Colors.surface} />
+              <Ionicons name="remove" size={20} color={Colors.onPrimary} />
             </Pressable>
             <Text style={styles.zoomLabel}>{zoomLabel}</Text>
             <Pressable
@@ -467,7 +467,7 @@ export default function JobCameraScreen() {
               disabled={zoom >= 0.5}
               onPress={() => setZoom((current) => Math.min(0.5, Number((current + 0.1).toFixed(1))))}
               style={styles.zoomButton}>
-              <Ionicons name="add" size={20} color={Colors.surface} />
+              <Ionicons name="add" size={20} color={Colors.onPrimary} />
             </Pressable>
           </View>
         </View>
@@ -477,14 +477,14 @@ export default function JobCameraScreen() {
             <View style={[styles.ghostPanel, landscape && styles.ghostPanelLandscape]}>
               <View style={styles.ghostToggleRow}>
                 <View style={styles.ghostToggleTitle}>
-                  <Ionicons name="layers-outline" size={20} color={Colors.surface} />
+                  <Ionicons name="layers-outline" size={20} color={Colors.onPrimary} />
                   <Text style={styles.ghostToggleLabel}>Ghost overlay</Text>
                 </View>
                 <Switch
                   accessibilityLabel="Toggle Before photo ghost overlay"
                   accessibilityState={{ checked: ghostEnabled }}
                   onValueChange={setGhostEnabled}
-                  thumbColor={Colors.surface}
+                  thumbColor={Colors.onPrimary}
                   trackColor={{ false: '#5E6672', true: Colors.primary }}
                   value={ghostEnabled}
                 />
@@ -501,7 +501,7 @@ export default function JobCameraScreen() {
                     styles.ghostCollapseButton,
                     pressed && styles.pressed,
                   ]}>
-                  <Ionicons name="chevron-down" size={22} color={Colors.surface} />
+                  <Ionicons name="chevron-down" size={22} color={Colors.onPrimary} />
                 </Pressable>
               </View>
               <OpacitySlider
@@ -528,12 +528,12 @@ export default function JobCameraScreen() {
               <Ionicons
                 name={ghostEnabled ? 'layers' : 'layers-outline'}
                 size={21}
-                color={Colors.surface}
+                color={Colors.onPrimary}
               />
               <Text style={styles.ghostCompactText}>
                 {ghostEnabled ? `${Math.round(ghostOpacity * 100)}%` : 'Off'}
               </Text>
-              <Ionicons name="chevron-up" size={18} color={Colors.surface} />
+              <Ionicons name="chevron-up" size={18} color={Colors.onPrimary} />
             </Pressable>
           )
         ) : null}
@@ -571,7 +571,7 @@ export default function JobCameraScreen() {
           disabled={capturing}
           onPress={() => setFacing((current) => (current === 'back' ? 'front' : 'back'))}
           style={({ pressed }) => [styles.flipButton, pressed && styles.pressed]}>
-          <Ionicons name="camera-reverse-outline" size={30} color={Colors.surface} />
+          <Ionicons name="camera-reverse-outline" size={30} color={Colors.onPrimary} />
         </Pressable>
       </View>
 
@@ -639,7 +639,7 @@ const styles = StyleSheet.create({
   },
   overlayJobName: {
     maxWidth: '88%',
-    color: Colors.surface,
+    color: Colors.onPrimary,
     fontSize: 18,
     lineHeight: 24,
     fontWeight: '800',
@@ -664,7 +664,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xl,
   },
   stageBadgeText: {
-    color: Colors.surface,
+    color: Colors.onPrimary,
     fontSize: 15,
     fontWeight: '700',
   },
@@ -704,7 +704,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   ghostToggleLabel: {
-    color: Colors.surface,
+    color: Colors.onPrimary,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -733,7 +733,7 @@ const styles = StyleSheet.create({
     bottom: Spacing.sm,
   },
   ghostCompactText: {
-    color: Colors.surface,
+    color: Colors.onPrimary,
     fontSize: 14,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
@@ -750,7 +750,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 9,
     bottom: 7,
-    color: Colors.surface,
+    color: Colors.onPrimary,
     fontSize: 10,
     fontWeight: '800',
   },
@@ -768,7 +768,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   zoomLabel: {
-    color: Colors.surface,
+    color: Colors.onPrimary,
     fontSize: 12,
     fontWeight: '800',
   },
@@ -790,7 +790,7 @@ const styles = StyleSheet.create({
     width: 96,
   },
   captureStage: {
-    color: Colors.surface,
+    color: Colors.onPrimary,
     fontSize: 16,
     fontWeight: '800',
   },
@@ -807,13 +807,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 43,
     borderWidth: 5,
-    borderColor: Colors.surface,
+    borderColor: Colors.onPrimary,
   },
   shutterInner: {
     width: 66,
     height: 66,
     borderRadius: 33,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.onPrimary,
   },
   shutterPressed: {
     transform: [{ scale: 0.94 }],
@@ -837,7 +837,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(180, 35, 24, 0.92)',
   },
   cameraErrorText: {
-    color: Colors.surface,
+    color: Colors.onPrimary,
     fontSize: 14,
     lineHeight: 20,
     textAlign: 'center',

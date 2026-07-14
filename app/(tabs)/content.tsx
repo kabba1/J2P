@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
@@ -14,7 +15,7 @@ import {
 import { GeneratedAssetCard } from '@/components/generated-asset-card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ScreenContainer } from '@/components/ui/screen-container';
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Colors, Radius, Spacing, TouchTarget } from '@/constants/theme';
 import { useGeneratedAssets } from '@/state/generated-assets-context';
 import { useJobs } from '@/state/jobs-context';
 import { GeneratedAsset } from '@/types/generated-asset';
@@ -131,6 +132,13 @@ export default function ContentScreen() {
                 <Text style={styles.countText}>{assets.length}</Text>
               </View>
             ) : null}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Open Settings"
+              onPress={() => router.push('/settings')}
+              style={({ pressed }) => [styles.settingsButton, pressed && styles.pressed]}>
+              <Ionicons name="settings-outline" size={24} color={Colors.text} />
+            </Pressable>
           </View>
         }
         ListEmptyComponent={
@@ -225,6 +233,16 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
+  settingsButton: {
+    minWidth: TouchTarget.minimum,
+    minHeight: TouchTarget.minimum,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surfaceRaised,
+  },
   title: {
     color: Colors.text,
     fontSize: 30,
@@ -300,5 +318,8 @@ const styles = StyleSheet.create({
     color: Colors.danger,
     fontSize: 14,
     lineHeight: 20,
+  },
+  pressed: {
+    opacity: 0.62,
   },
 });

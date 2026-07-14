@@ -18,7 +18,7 @@ import { JobStatusFilter } from '@/components/job-status-filter';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { ScreenContainer } from '@/components/ui/screen-container';
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Colors, Radius, Spacing, TouchTarget } from '@/constants/theme';
 import { useJobs } from '@/state/jobs-context';
 import { useMedia } from '@/state/media-context';
 import {
@@ -111,10 +111,21 @@ export default function JobsScreen() {
         ]}
         ListHeaderComponent={
           <View style={styles.headerBlock}>
-            <Text style={styles.wordmark}>
-              Job<Text style={styles.wordmarkAccent}>ToPost</Text>
-            </Text>
-            <Text style={styles.tagline}>From finished job to ready-to-share story.</Text>
+            <View style={styles.headingRow}>
+              <View style={styles.headingText}>
+                <Text style={styles.wordmark}>
+                  Job<Text style={styles.wordmarkAccent}>ToPost</Text>
+                </Text>
+                <Text style={styles.tagline}>From finished job to ready-to-share story.</Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Open Settings"
+                onPress={() => router.push('/settings')}
+                style={({ pressed }) => [styles.settingsButton, pressed && styles.pressed]}>
+                <Ionicons name="settings-outline" size={24} color={Colors.text} />
+              </Pressable>
+            </View>
             <PrimaryButton
               label="New Job"
               icon="add"
@@ -211,6 +222,15 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
     paddingBottom: Spacing.lg,
   },
+  headingRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+  },
+  headingText: {
+    flex: 1,
+    minWidth: 0,
+  },
   wordmark: {
     color: Colors.text,
     fontSize: 38,
@@ -227,6 +247,16 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginTop: -Spacing.sm,
     marginBottom: Spacing.sm,
+  },
+  settingsButton: {
+    minWidth: TouchTarget.minimum,
+    minHeight: TouchTarget.minimum,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surfaceRaised,
   },
   searchContainer: {
     minHeight: 50,

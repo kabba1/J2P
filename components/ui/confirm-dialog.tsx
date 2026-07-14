@@ -66,7 +66,7 @@ export function ConfirmDialog({
                 pressed && styles.pressed,
               ]}>
               {busy ? (
-                <ActivityIndicator color={Colors.surface} />
+                <ActivityIndicator color={Colors.onPrimary} />
               ) : (
                 <Text style={styles.confirmLabel}>{confirmLabel}</Text>
               )}
@@ -84,15 +84,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: Spacing.xl,
-    backgroundColor: 'rgba(11, 18, 32, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.72)',
   },
   card: {
     width: '100%',
     maxWidth: 390,
     alignItems: 'center',
     padding: Spacing.xl,
+    borderWidth: 1,
+    borderColor: Colors.border,
     borderRadius: Radius.lg,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surfaceRaised,
   },
   icon: {
     width: 58,
@@ -137,7 +139,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   confirmLabel: {
-    color: Colors.surface,
+    color: Colors.onPrimary,
     fontSize: 16,
     fontWeight: '700',
   },

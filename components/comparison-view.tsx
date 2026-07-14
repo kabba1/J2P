@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   },
   sideDivider: {
     width: 2,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.onPrimary,
   },
   beforeClip: {
     position: 'absolute',
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   badgeText: {
-    color: Colors.surface,
+    color: Colors.onPrimary,
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.3,
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: 2,
     marginLeft: -1,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.onPrimary,
   },
   handle: {
     position: 'absolute',
@@ -226,8 +226,8 @@ const styles = StyleSheet.create({
     marginTop: -26,
     borderRadius: 26,
     borderWidth: 2,
-    borderColor: Colors.surface,
-    backgroundColor: Colors.surface,
+    borderColor: Colors.onPrimary,
+    backgroundColor: Colors.onPrimary,
     shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,

@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   modeLabelSelected: {
-    color: Colors.surface,
+    color: Colors.onPrimary,
   },
   comparisonCard: {
     padding: Spacing.md,

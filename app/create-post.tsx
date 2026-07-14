@@ -497,7 +497,7 @@ export default function CreatePostScreen() {
                 disabled={generationInFlight}
                 onValueChange={setLabelsEnabled}
                 trackColor={{ false: '#C8CED8', true: '#9FC4FF' }}
-                thumbColor={labelsEnabled ? Colors.primary : Colors.surface}
+                thumbColor={labelsEnabled ? Colors.primary : Colors.onPrimary}
               />
             </View>
           </View>

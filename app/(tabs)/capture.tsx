@@ -7,7 +7,7 @@ import { JobCard } from '@/components/job-card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { ScreenContainer } from '@/components/ui/screen-container';
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Colors, Radius, Spacing, TouchTarget } from '@/constants/theme';
 import { useJobs } from '@/state/jobs-context';
 import { useMedia } from '@/state/media-context';
 import { MediaStage } from '@/types/media';
@@ -60,6 +60,13 @@ export default function CaptureScreen() {
             <Text style={styles.title}>Capture</Text>
             <Text style={styles.subtitle}>Jump back into the latest active job.</Text>
           </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Open Settings"
+            onPress={() => router.push('/settings')}
+            style={({ pressed }) => [styles.settingsButton, pressed && styles.pressed]}>
+            <Ionicons name="settings-outline" size={24} color={Colors.text} />
+          </Pressable>
         </View>
 
         {loading && jobs.length === 0 ? (
@@ -154,6 +161,17 @@ const styles = StyleSheet.create({
   },
   headingText: {
     flex: 1,
+    minWidth: 0,
+  },
+  settingsButton: {
+    minWidth: TouchTarget.minimum,
+    minHeight: TouchTarget.minimum,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surfaceRaised,
   },
   title: {
     color: Colors.text,

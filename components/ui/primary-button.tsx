@@ -42,10 +42,10 @@ export function PrimaryButton({
         style,
       ]}>
       {loading ? (
-        <ActivityIndicator color={Colors.surface} />
+        <ActivityIndicator color={Colors.onPrimary} />
       ) : (
         <>
-          {icon ? <Ionicons name={icon} size={24} color={Colors.surface} /> : null}
+          {icon ? <Ionicons name={icon} size={24} color={Colors.onPrimary} /> : null}
           <Text style={styles.label}>{label}</Text>
         </>
       )}
@@ -62,12 +62,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'row',
     gap: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.primary,
     backgroundColor: Colors.primary,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 3,
   },
   pressed: {
     backgroundColor: Colors.primaryPressed,
@@ -75,11 +72,9 @@ const styles = StyleSheet.create({
   },
   disabled: {
     opacity: 0.45,
-    shadowOpacity: 0,
-    elevation: 0,
   },
   label: {
-    color: Colors.surface,
+    color: Colors.onPrimary,
     fontSize: 18,
     lineHeight: 23,
     fontWeight: '700',
