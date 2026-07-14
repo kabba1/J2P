@@ -74,7 +74,7 @@ test('renders a real expo-image hero with honest metadata and a deliberate no-ph
   );
   assert.match(heroBlock, /source=\{\{\s*uri:\s*latestMedia\.localUri\s*\}\}/);
   assert.match(heroBlock, /contentFit="cover"/);
-  assert.match(heroBlock, /<Text\s+style=\{styles\.jobName\}>\{job\.name\}<\/Text>/);
+  assert.match(heroBlock, /style=\{styles\.jobName\}>[\s\S]*?\{job\.name\}[\s\S]*?<\/Text>/);
   assert.match(dashboardSource, /styles\.heroFallback/);
   assert.match(dashboardSource, /name="camera-outline"/);
   assert.match(dashboardSource, /job\.serviceType\s*\?/);
@@ -92,10 +92,12 @@ test('renders a real expo-image hero with honest metadata and a deliberate no-ph
 
   const heroMediaStyle = findStyle(dashboardSource, 'heroMedia');
   const heroContentStyle = findStyle(dashboardSource, 'heroContent');
-  assert.match(heroMediaStyle, /aspectRatio:\s*4\s*\/\s*3/);
+  assert.match(heroMediaStyle, /height:\s*300/);
+  assert.doesNotMatch(heroMediaStyle, /aspectRatio:/);
   assert.match(heroMediaStyle, /overflow:\s*['"]hidden['"]/);
-  assert.match(heroContentStyle, /backgroundColor:\s*Colors\.surface/);
-  assert.doesNotMatch(heroContentStyle, /maxHeight|minHeight:\s*['"]100%['"]|position:\s*['"]absolute['"]/);
+  assert.match(heroContentStyle, /backgroundColor:\s*['"]rgba\(15,\s*20,\s*27,/);
+  assert.match(heroContentStyle, /position:\s*['"]absolute['"]/);
+  assert.match(heroContentStyle, /bottom:\s*0/);
   assert.match(scrimStyle, /backgroundColor:\s*['"]rgba\(15,\s*20,\s*27,/);
   assert.match(scrimStyle, /pointerEvents:\s*['"]none['"]/);
   assert.doesNotMatch(heroBlock, /pointerEvents=/);
@@ -129,7 +131,7 @@ test('uses file checks and image errors to show deliberate missing-photo fallbac
   assert.match(dashboardSource, /onError=\{\(\)\s*=>\s*markMediaUnavailable\(latestMedia\.id\)\}/);
   assert.match(dashboardSource, /unavailableMediaIds\.has\(item\.id\)\s*\?/);
   assert.match(dashboardSource, /onError=\{\(\)\s*=>\s*markMediaUnavailable\(item\.id\)\}/);
-  assert.match(dashboardSource, />Photo unavailable</);
+  assert.match(dashboardSource, />\s*Photo unavailable\s*</);
 });
 
 test('keeps all three stages tappable inside one compact stage rail', () => {
@@ -157,7 +159,7 @@ test('keeps all three stages tappable inside one compact stage rail', () => {
   assert.match(stageCardSource, /height:\s*3/);
   const stageCardStyle = findStyle(stageCardSource, 'card');
   assert.match(stageCardStyle, /minWidth:\s*TouchTarget\.minimum/);
-  assert.match(stageCardStyle, /minHeight:\s*132/);
+  assert.match(stageCardStyle, /minHeight:\s*120/);
   assert.doesNotMatch(stageCardSource, /iconCircle|shadowColor|shadowOffset|shadowOpacity|shadowRadius|elevation/);
 });
 
@@ -220,14 +222,13 @@ test('removes the redundant capture summary while preserving every dashboard act
   assert.doesNotMatch(dashboardSource, /Shot List/);
   assert.doesNotMatch(dashboardSource, /Start Capture/);
 
-  const dashboardHeader = findBlock(
-    dashboardSource,
-    /<ScreenHeader\b[\s\S]*?title="Job Dashboard"[\s\S]*?\/>/,
-    'dashboard header',
+  const dashboardBack = findPressable('dashboard back action', /accessibilityLabel="Go back"/);
+  assert.match(dashboardBack, /onPress=\{\(\)\s*=>\s*router\.back\(\)\}/);
+  const dashboardEdit = findPressable('dashboard edit action', /accessibilityLabel="Edit job"/);
+  assert.match(
+    dashboardEdit,
+    /onPress=\{\(\)\s*=>\s*router\.push\(\{\s*pathname:\s*['"]\/edit['"]\s*,\s*params:\s*\{\s*id:\s*job\.id\s*\}/,
   );
-  assert.match(dashboardHeader, /onBack=\{\(\)\s*=>\s*router\.back\(\)\}/);
-  assert.match(dashboardHeader, /actionLabel="Edit"/);
-  assert.match(dashboardHeader, /onAction=\{\(\)\s*=>\s*router\.push\(\{\s*pathname:\s*['"]\/edit['"]/);
   assert.match(screenHeaderSource, /accessibilityRole="button"/);
   assert.match(screenHeaderSource, /accessibilityLabel="Go back"/);
   assert.match(findStyle(screenHeaderSource, 'iconButton'), /minHeight:\s*44/);

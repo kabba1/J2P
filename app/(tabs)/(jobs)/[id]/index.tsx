@@ -32,6 +32,7 @@ import { stageLabel } from '@/utils/media-stage';
 
 type MetadataRowProps = {
   icon: ComponentProps<typeof Ionicons>['name'];
+  label: string;
   value: string;
 };
 
@@ -41,11 +42,18 @@ const stageColors = {
   after: Colors.after,
 } as const;
 
-function MetadataRow({ icon, value }: MetadataRowProps) {
+function MetadataRow({ icon, label, value }: MetadataRowProps) {
   return (
     <View style={styles.detailRow}>
-      <Ionicons name={icon} size={19} color={Colors.textMuted} />
-      <Text style={styles.detailValue}>{value}</Text>
+      <Ionicons accessible={false} name={icon} size={16} color={Colors.textMuted} />
+      <Text
+        accessibilityLabel={`${label}: ${value}`}
+        ellipsizeMode="tail"
+        maxFontSizeMultiplier={1.2}
+        numberOfLines={1}
+        style={styles.detailValue}>
+        {value}
+      </Text>
     </View>
   );
 }
@@ -209,7 +217,6 @@ export default function JobDashboardScreen() {
   }
 
   const counts = countsForJob(job.id);
-  const totalPhotos = counts.before + counts.progress + counts.after;
   const latestMedia = selectLatestJobMedia(media, job.id);
   const recentMedia = media
     .filter((item) => item.jobId === job.id)
@@ -222,12 +229,6 @@ export default function JobDashboardScreen() {
 
   return (
     <ScreenContainer>
-      <ScreenHeader
-        title="Job Dashboard"
-        onBack={() => router.back()}
-        actionLabel="Edit"
-        onAction={() => router.push({ pathname: '/edit', params: { id: job.id } })}
-      />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.hero}>
           <View style={styles.heroMedia}>
@@ -242,31 +243,87 @@ export default function JobDashboardScreen() {
               />
             ) : (
               <View style={styles.heroFallback}>
-                <Ionicons name="camera-outline" size={54} color={Colors.textMuted} />
-                {latestMedia ? (
-                  <Text style={styles.heroFallbackText}>Photo unavailable</Text>
-                ) : (
-                  <Text style={styles.heroFallbackText}>No job photos yet</Text>
-                )}
+                <Ionicons
+                  accessible={false}
+                  name="camera-outline"
+                  size={54}
+                  color={Colors.textMuted}
+                />
               </View>
             )}
             {latestMedia && !unavailableMediaIds.has(latestMedia.id) ? (
               <View style={styles.heroScrim} />
             ) : null}
-          </View>
-          <View style={styles.heroContent}>
-            <Text style={styles.jobName}>{job.name}</Text>
-            <View style={styles.heroMetadata}>
-              {job.serviceType ? (
-                <MetadataRow icon="construct-outline" value={job.serviceType} />
+            <View style={styles.heroTopBar}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Go back"
+                hitSlop={8}
+                onPress={() => router.back()}
+                style={({ pressed }) => [
+                  styles.heroTopButton,
+                  pressed && styles.heroTopButtonPressed,
+                ]}>
+                <Ionicons name="chevron-back" size={28} color={Colors.text} />
+              </Pressable>
+              <Text maxFontSizeMultiplier={1.2} numberOfLines={1} style={styles.heroTopTitle}>
+                Job Dashboard
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Edit job"
+                hitSlop={8}
+                onPress={() => router.push({ pathname: '/edit', params: { id: job.id } })}
+                style={({ pressed }) => [
+                  styles.heroTopButton,
+                  pressed && styles.heroTopButtonPressed,
+                ]}>
+                <Ionicons name="create-outline" size={24} color={Colors.text} />
+              </Pressable>
+            </View>
+            <View style={styles.heroContent}>
+              {!latestMedia || unavailableMediaIds.has(latestMedia.id) ? (
+                <View style={styles.heroStatus}>
+                  <Ionicons
+                    accessible={false}
+                    name="image-outline"
+                    size={16}
+                    color={Colors.textMuted}
+                  />
+                  {latestMedia ? (
+                    <Text maxFontSizeMultiplier={1.2} style={styles.heroStatusText}>
+                      Photo unavailable
+                    </Text>
+                  ) : (
+                    <Text maxFontSizeMultiplier={1.2} style={styles.heroStatusText}>
+                      No job photos yet
+                    </Text>
+                  )}
+                </View>
               ) : null}
-              {job.customer ? (
-                <MetadataRow icon="person-outline" value={job.customer} />
-              ) : null}
-              {job.address ? (
-                <MetadataRow icon="location-outline" value={job.address} />
-              ) : null}
-              <MetadataRow icon="calendar-outline" value={formatDate(job.createdAt)} />
+              <Text
+                accessibilityLabel={job.name}
+                maxFontSizeMultiplier={1.2}
+                numberOfLines={2}
+                style={styles.jobName}>
+                {job.name}
+              </Text>
+              <View style={styles.heroMetadata}>
+                {job.serviceType ? (
+                  <MetadataRow icon="construct-outline" label="Service" value={job.serviceType} />
+                ) : null}
+                {job.customer ? (
+                  <MetadataRow icon="person-outline" label="Customer" value={job.customer} />
+                ) : null}
+                {job.address ? (
+                  <MetadataRow icon="location-outline" label="Address" value={job.address} />
+                ) : null}
+                <MetadataRow
+                  icon="calendar-outline"
+                  label="Created"
+                  value={formatDate(job.createdAt)}
+                />
+              </View>
             </View>
           </View>
         </View>
@@ -305,26 +362,6 @@ export default function JobDashboardScreen() {
             </View>
           </View>
         ) : null}
-
-        {job.notes ? (
-          <View style={styles.notesRegion}>
-            <View style={styles.notesHeader}>
-              <Ionicons name="document-text-outline" size={19} color={Colors.textMuted} />
-              <Text style={styles.notesTitle}>Job notes</Text>
-            </View>
-            <Text style={styles.notesText}>{job.notes}</Text>
-          </View>
-        ) : null}
-
-        <View style={styles.sectionHeader}>
-          <View>
-            <Text style={styles.sectionTitle}>Capture progress</Text>
-            <Text style={styles.sectionSubtitle}>Open any stage to view or add photos.</Text>
-          </View>
-          <Text style={styles.totalCount}>
-            {totalPhotos} {totalPhotos === 1 ? 'photo' : 'photos'}
-          </Text>
-        </View>
 
         <View style={styles.stageRow}>
           <StageCard
@@ -512,6 +549,16 @@ export default function JobDashboardScreen() {
           </Pressable>
         </View>
 
+        {job.notes ? (
+          <View style={styles.notesRegion}>
+            <View style={styles.notesHeader}>
+              <Ionicons name="document-text-outline" size={19} color={Colors.textMuted} />
+              <Text style={styles.notesTitle}>Job notes</Text>
+            </View>
+            <Text style={styles.notesText}>{job.notes}</Text>
+          </View>
+        ) : null}
+
         <View style={styles.jobOptionsSection}>
           {!job.archivedAt && lifecycleError ? (
             <View accessibilityRole="alert" style={styles.lifecycleError}>
@@ -640,7 +687,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     padding: 20,
     paddingBottom: Spacing.xxl,
-    gap: 20,
+    gap: 14,
   },
   hero: {
     width: 'auto',
@@ -650,9 +697,7 @@ const styles = StyleSheet.create({
   },
   heroMedia: {
     width: '100%',
-    minHeight: 240,
-    maxHeight: 420,
-    aspectRatio: 4 / 3,
+    height: 300,
     overflow: 'hidden',
     backgroundColor: Colors.surfaceRaised,
   },
@@ -663,36 +708,87 @@ const styles = StyleSheet.create({
   heroFallback: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
+    justifyContent: 'flex-start',
+    paddingTop: 82,
     backgroundColor: Colors.surfaceRaised,
-  },
-  heroFallbackText: {
-    color: Colors.textMuted,
-    fontSize: 14,
-    fontWeight: '700',
   },
   heroScrim: {
     ...StyleSheet.absoluteFillObject,
     pointerEvents: 'none',
     backgroundColor: 'rgba(15, 20, 27, 0.22)',
   },
+  heroTopBar: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    left: 0,
+    zIndex: 2,
+    minHeight: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(15, 20, 27, 0.76)',
+  },
+  heroTopButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: Radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+    backgroundColor: 'rgba(27, 36, 48, 0.88)',
+  },
+  heroTopButtonPressed: {
+    opacity: 0.62,
+  },
+  heroTopTitle: {
+    flex: 1,
+    color: Colors.text,
+    fontSize: 18,
+    lineHeight: 23,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
   heroContent: {
-    gap: Spacing.md,
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    backgroundColor: Colors.surface,
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    left: 0,
+    gap: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: 'rgba(15, 20, 27, 0.90)',
+  },
+  heroStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  heroStatusText: {
+    color: Colors.textMuted,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '800',
+    letterSpacing: 0.35,
+    textTransform: 'uppercase',
   },
   jobName: {
     color: Colors.text,
-    fontSize: 32,
-    lineHeight: 38,
+    fontSize: 28,
+    lineHeight: 34,
     fontWeight: '800',
     letterSpacing: -0.7,
   },
   heroMetadata: {
-    gap: Spacing.sm,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    columnGap: Spacing.md,
+    rowGap: Spacing.xs,
   },
   archivedBanner: {
     flexDirection: 'row',
@@ -764,23 +860,19 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   detailRow: {
-    minHeight: 20,
+    minWidth: 0,
+    maxWidth: '100%',
+    minHeight: 18,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    gap: Spacing.xs,
   },
   detailValue: {
     flexShrink: 1,
     color: Colors.textMuted,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
     fontWeight: '600',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    gap: Spacing.md,
   },
   sectionTitle: {
     color: Colors.text,
@@ -792,11 +884,6 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     fontSize: 14,
     lineHeight: 20,
-  },
-  totalCount: {
-    color: Colors.primary,
-    fontSize: 14,
-    fontWeight: '700',
   },
   stageRow: {
     flexDirection: 'row',

@@ -40,11 +40,11 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     minWidth: TouchTarget.minimum,
-    minHeight: 132,
+    minHeight: 120,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.lg,
+    paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.border,
     backgroundColor: Colors.surface,
