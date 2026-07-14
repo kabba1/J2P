@@ -3,6 +3,7 @@ import { createContext, PropsWithChildren, useCallback, useContext, useEffect, u
 import { jobRepository } from '@/repositories/async-storage-job-repository';
 import { mediaRepository } from '@/repositories/async-storage-media-repository';
 import { mediaFileStorage } from '@/services/media-file-storage';
+import { useGeneratedAssets } from '@/state/generated-assets-context';
 import { usePairs } from '@/state/pairs-context';
 import { Job, JobInput } from '@/types/job';
 
@@ -13,6 +14,8 @@ type JobsContextValue = {
   refresh: () => Promise<void>;
   createJob: (input: JobInput) => Promise<Job>;
   updateJob: (id: string, input: JobInput) => Promise<Job | undefined>;
+  archiveJob: (id: string) => Promise<Job | undefined>;
+  restoreJob: (id: string) => Promise<Job | undefined>;
   deleteJob: (id: string) => Promise<boolean>;
 };
 
@@ -24,6 +27,7 @@ function sortJobs(jobs: Job[]): Job[] {
 
 export function JobsProvider({ children }: PropsWithChildren) {
   const { deletePairsForJob, refreshJobPairs, restorePairs } = usePairs();
+  const { deleteJobWithAssets } = useGeneratedAssets();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
@@ -60,22 +64,48 @@ export function JobsProvider({ children }: PropsWithChildren) {
     return updated;
   }, []);
 
+  const archiveJob = useCallback(async (id: string) => {
+    const archived = await jobRepository.archiveJob(id);
+    if (archived) {
+      setJobs((current) =>
+        sortJobs(current.map((job) => (job.id === archived.id ? archived : job))),
+      );
+    }
+    return archived;
+  }, []);
+
+  const restoreJob = useCallback(async (id: string) => {
+    const restored = await jobRepository.restoreJob(id);
+    if (restored) {
+      setJobs((current) =>
+        sortJobs(current.map((job) => (job.id === restored.id ? restored : job))),
+      );
+    }
+    return restored;
+  }, []);
+
   const deleteJob = useCallback(async (id: string) => {
-    if (!(await jobRepository.getJob(id))) return false;
-    const removedPairs = await refreshJobPairs(id);
-    await deletePairsForJob(id);
-    let deleted: boolean;
-    try {
-      deleted = await jobRepository.deleteJob(id);
-    } catch (caughtError) {
-      if (removedPairs.length > 0 && (await jobRepository.getJob(id))) {
+    const deleted = await deleteJobWithAssets(id, async () => {
+      const removedPairs = await refreshJobPairs(id);
+      await deletePairsForJob(id);
+      let jobDeleted: boolean;
+      try {
+        jobDeleted = await jobRepository.deleteJob(id);
+      } catch (caughtError) {
+        if (removedPairs.length > 0 && (await jobRepository.getJob(id))) {
+          await restorePairs(removedPairs);
+        }
+        throw caughtError;
+      }
+      if (
+        !jobDeleted &&
+        removedPairs.length > 0 &&
+        (await jobRepository.getJob(id))
+      ) {
         await restorePairs(removedPairs);
       }
-      throw caughtError;
-    }
-    if (!deleted && removedPairs.length > 0 && (await jobRepository.getJob(id))) {
-      await restorePairs(removedPairs);
-    }
+      return jobDeleted;
+    });
     if (deleted) {
       setJobs((current) => current.filter((job) => job.id !== id));
       await mediaRepository.deleteMediaForJob(id).catch((cleanupError) => {
@@ -86,11 +116,31 @@ export function JobsProvider({ children }: PropsWithChildren) {
       });
     }
     return deleted;
-  }, [deletePairsForJob, refreshJobPairs, restorePairs]);
+  }, [deleteJobWithAssets, deletePairsForJob, refreshJobPairs, restorePairs]);
 
   const value = useMemo(
-    () => ({ jobs, loading, error, refresh, createJob, updateJob, deleteJob }),
-    [jobs, loading, error, refresh, createJob, updateJob, deleteJob],
+    () => ({
+      jobs,
+      loading,
+      error,
+      refresh,
+      createJob,
+      updateJob,
+      archiveJob,
+      restoreJob,
+      deleteJob,
+    }),
+    [
+      jobs,
+      loading,
+      error,
+      refresh,
+      createJob,
+      updateJob,
+      archiveJob,
+      restoreJob,
+      deleteJob,
+    ],
   );
 
   return <JobsContext.Provider value={value}>{children}</JobsContext.Provider>;

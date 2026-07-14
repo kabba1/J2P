@@ -41,6 +41,12 @@ export function JobCard({ job, onPress, counts }: JobCardProps) {
           <Ionicons name="briefcase" size={27} color={Colors.primary} />
         </View>
         <View style={styles.details}>
+          {job.archivedAt ? (
+            <View style={styles.archivedBadge}>
+              <Ionicons name="archive-outline" size={12} color={Colors.textMuted} />
+              <Text style={styles.archivedLabel}>Archived</Text>
+            </View>
+          ) : null}
           <Text style={styles.name} numberOfLines={2}>
             {job.name}
           </Text>
@@ -100,6 +106,22 @@ const styles = StyleSheet.create({
   details: {
     flex: 1,
     gap: 2,
+  },
+  archivedBadge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.surfaceMuted,
+    marginBottom: 2,
+  },
+  archivedLabel: {
+    color: Colors.textMuted,
+    fontSize: 11,
+    fontWeight: '800',
   },
   name: {
     color: Colors.text,

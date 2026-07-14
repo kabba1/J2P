@@ -1,8 +1,23 @@
 # JobToPost
 
-JobToPost helps small service businesses organize customer jobs around Before, Progress, and After media. The current milestone provides offline job management, real device-camera capture, job-specific stage galleries, persistent app-private photo storage, optional shot notes, derived photo counts, and a matched Before/After workflow with a ghost alignment overlay.
+JobToPost helps small service businesses document customer work and turn a matched Before/After pair into a finished social-ready image.
 
-Cloud storage, AI guidance, and marketing content generation remain future milestones.
+The current Expo MVP provides:
+
+- Offline job management and Before, Progress, and After galleries
+- Real device-camera capture with persistent app-private photo storage
+- A matched After queue and adjustable Before-photo ghost overlay
+- Durable Before/After pairs with review, replacement, and unpairing
+- Static Before/After post generation
+- Square 1080 × 1080 and Portrait 1080 × 1350 output
+- Side by Side and Stacked layouts
+- Optional BEFORE/AFTER labels and a short footer
+- A persistent generated-post Content library
+- Explicit Save to Photos, native Share, versioning, and deletion actions
+
+Original job photos are never overwritten. Each generated post is an independent PNG stored under its job, so it remains available if the source pair is later changed or removed. Deleting the job removes that job's managed photos and generated posts.
+
+AI captions, video/reels, cloud sync, authentication, subscriptions, direct social posting, and the complete Content Pack workflow remain future milestones.
 
 ## Run the app
 
@@ -13,6 +28,10 @@ npm start
 
 Scan the QR code with Expo Go on an Android device connected to the same network, or press `a` for an Android emulator and `w` for the web preview.
 
+The Pixel 6a through Expo Go is the primary device target. The product workflow stores and processes media locally; the Expo/Metro connection is still needed to load and refresh the app during development. The browser build is useful for navigation plus empty and error-state smoke tests. The saved-photo builder, native document storage, persistent post generation, Save to Photos, and local-file sharing require Expo Go on Android or iOS.
+
+On 2026-07-13, the complete Pixel 6a golden path passed: create a job, capture Before and Progress photos, capture and approve a ghost-aligned After, generate a static post, Save to Photos, open Android sharing, and force-close/reopen with the job, photos, pair, and generated post still present. Detailed rendering-quality, permission-denial, destructive, navigation, and scale checks remain open.
+
 ## Validate
 
 ```bash
@@ -22,4 +41,6 @@ npx tsc --noEmit
 npx expo-doctor
 ```
 
-See [docs/PRODUCT.md](docs/PRODUCT.md) for the product boundary and roadmap context.
+The golden path has physical-device evidence. Exact image dimensions and visual quality, permission denial/settings recovery, destructive cases, repeated-operation stress, and complete Android back behavior still require focused device verification; automated tests do not claim to cover them.
+
+See [docs/PRODUCT.md](docs/PRODUCT.md) for the current boundary, [docs/MILESTONE_4.md](docs/MILESTONE_4.md) and [docs/MILESTONE_5.md](docs/MILESTONE_5.md) for implementation evidence, [docs/LAUNCH_CHECKLIST.md](docs/LAUNCH_CHECKLIST.md) for the inventory, and [docs/ANDROID_LAUNCH_PLAN.md](docs/ANDROID_LAUNCH_PLAN.md) for the gated Android release plan.

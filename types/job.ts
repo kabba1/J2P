@@ -5,6 +5,7 @@ export type Job = {
   address?: string;
   serviceType?: string;
   notes?: string;
+  archivedAt?: string;
   createdAt: string;
   updatedAt: string;
   beforeCount: number;

@@ -1,15 +1,27 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Image } from 'expo-image';
 import { ComponentProps, useCallback, useState } from 'react';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { StageCard } from '@/components/stage-card';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { ScreenContainer } from '@/components/ui/screen-container';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+import { useGeneratedAssets } from '@/state/generated-assets-context';
 import { useJobs } from '@/state/jobs-context';
 import { useMedia } from '@/state/media-context';
+import { GeneratedAsset } from '@/types/generated-asset';
 import { MediaStage } from '@/types/media';
 import { formatDate } from '@/utils/format-date';
 
@@ -31,19 +43,37 @@ function DetailRow({ icon, label, value }: DetailRowProps) {
   );
 }
 
+function assetDescription(asset: GeneratedAsset): string {
+  const format = asset.format === 'square' ? 'Square 1:1' : 'Portrait 4:5';
+  const layout = asset.layout === 'side-by-side' ? 'Side by Side' : 'Stacked';
+  return `${format} / ${layout}`;
+}
+
 export default function JobDashboardScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  const { jobs, loading, deleteJob } = useJobs();
+  const { jobs, loading, archiveJob, restoreJob, deleteJob } = useJobs();
   const { countsForJob, refreshJob } = useMedia();
+  const {
+    assetsForJob,
+    refreshJob: refreshGeneratedAssets,
+  } = useGeneratedAssets();
   const job = jobs.find((candidate) => candidate.id === id);
   const [deleteVisible, setDeleteVisible] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string>();
+  const [archiveVisible, setArchiveVisible] = useState(false);
+  const [lifecycleBusy, setLifecycleBusy] = useState(false);
+  const [lifecycleError, setLifecycleError] = useState<string>();
 
   useFocusEffect(
     useCallback(() => {
-      if (id) void refreshJob(id).catch(() => undefined);
-    }, [id, refreshJob]),
+      if (id) {
+        void refreshJob(id).catch(() => undefined);
+        void refreshGeneratedAssets(id).catch(() => undefined);
+      }
+    }, [id, refreshGeneratedAssets, refreshJob]),
   );
 
   const openGallery = (stage: MediaStage) => {
@@ -56,16 +86,75 @@ export default function JobDashboardScreen() {
     router.push({ pathname: '/after-queue', params: { jobId: job.id } });
   };
 
+  const openContent = () => {
+    router.push('/content');
+  };
+
+  const openGeneratedAsset = (assetId: string) => {
+    router.push({ pathname: '/generated-asset', params: { assetId } });
+  };
+
   const confirmDelete = () => {
     if (!job) return;
+    setDeleteError(undefined);
     setDeleteVisible(true);
   };
 
   const handleDelete = async () => {
-    if (!job) return;
-    await deleteJob(job.id);
-    setDeleteVisible(false);
-    router.replace('/');
+    if (!job || deleting) return;
+    setDeleting(true);
+    setDeleteError(undefined);
+    try {
+      const deleted = await deleteJob(job.id);
+      if (!deleted) {
+        setDeleteError('The job could not be deleted. Please try again.');
+        return;
+      }
+      setDeleteVisible(false);
+      router.replace('/');
+    } catch {
+      setDeleteError(
+        'The job could not be deleted safely. Your job was kept. Please try again.',
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleArchive = async () => {
+    if (!job || lifecycleBusy || job.archivedAt) return;
+    setLifecycleBusy(true);
+    setLifecycleError(undefined);
+    try {
+      const archived = await archiveJob(job.id);
+      if (!archived) {
+        setLifecycleError('The job could not be archived. Please try again.');
+        return;
+      }
+      setArchiveVisible(false);
+      router.replace('/');
+    } catch {
+      setLifecycleError('The job could not be archived safely. Nothing was deleted.');
+      setArchiveVisible(false);
+    } finally {
+      setLifecycleBusy(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    if (!job || lifecycleBusy || !job.archivedAt) return;
+    setLifecycleBusy(true);
+    setLifecycleError(undefined);
+    try {
+      const restored = await restoreJob(job.id);
+      if (!restored) {
+        setLifecycleError('The job could not be restored. Please try again.');
+      }
+    } catch {
+      setLifecycleError('The job could not be restored. Please try again.');
+    } finally {
+      setLifecycleBusy(false);
+    }
   };
 
   if (!job && !loading) {
@@ -91,6 +180,8 @@ export default function JobDashboardScreen() {
 
   const counts = countsForJob(job.id);
   const totalPhotos = counts.before + counts.progress + counts.after;
+  const generatedAssets = assetsForJob(job.id);
+  const latestGeneratedAsset = generatedAssets[0];
 
   return (
     <ScreenContainer>
@@ -110,6 +201,18 @@ export default function JobDashboardScreen() {
             {job.serviceType ? <Text style={styles.serviceType}>{job.serviceType}</Text> : null}
           </View>
         </View>
+
+        {job.archivedAt ? (
+          <View style={styles.archivedBanner}>
+            <Ionicons name="archive-outline" size={24} color={Colors.primary} />
+            <View style={styles.archivedText}>
+              <Text style={styles.archivedTitle}>Archived job</Text>
+              <Text style={styles.archivedMessage}>
+                Every original photo, saved pair, and generated post is still here. Restore this job to return it to Active.
+              </Text>
+            </View>
+          </View>
+        ) : null}
 
         <View style={styles.detailsCard}>
           {job.customer ? (
@@ -173,6 +276,70 @@ export default function JobDashboardScreen() {
           <Ionicons name="chevron-forward" size={23} color={Colors.primary} />
         </Pressable>
 
+        <View style={styles.generatedSection}>
+          <View style={styles.generatedHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Generated Content</Text>
+              <Text style={styles.sectionSubtitle}>
+                {generatedAssets.length} {generatedAssets.length === 1 ? 'post' : 'posts'} from this job
+              </Text>
+            </View>
+            <View style={styles.generatedCountBadge}>
+              <Text style={styles.generatedCountText}>{generatedAssets.length}</Text>
+            </View>
+          </View>
+
+          {latestGeneratedAsset ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Open latest generated post for this job"
+              onPress={() => openGeneratedAsset(latestGeneratedAsset.id)}
+              style={({ pressed }) => [
+                styles.latestGeneratedRow,
+                pressed && styles.generatedPressed,
+              ]}>
+              <Image
+                accessibilityLabel="Latest generated Before and After post"
+                cachePolicy="memory-disk"
+                contentFit="cover"
+                source={{ uri: latestGeneratedAsset.localUri }}
+                style={styles.latestGeneratedThumbnail}
+              />
+              <View style={styles.latestGeneratedText}>
+                <Text numberOfLines={1} style={styles.latestGeneratedTitle}>
+                  {latestGeneratedAsset.sourceShotName || 'Latest post'}
+                </Text>
+                <Text numberOfLines={1} style={styles.latestGeneratedMetadata}>
+                  {assetDescription(latestGeneratedAsset)}
+                </Text>
+                <Text numberOfLines={1} style={styles.latestGeneratedDate}>
+                  Created {formatDate(latestGeneratedAsset.createdAt)}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={22} color={Colors.textMuted} />
+            </Pressable>
+          ) : (
+            <View style={styles.noGeneratedContent}>
+              <Ionicons name="image-outline" size={27} color={Colors.textMuted} />
+              <Text style={styles.noGeneratedContentText}>
+                Create a saved Before and After pair, then turn it into a finished post.
+              </Text>
+            </View>
+          )}
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Open Content"
+            onPress={openContent}
+            style={({ pressed }) => [
+              styles.openContentButton,
+              pressed && styles.generatedPressed,
+            ]}>
+            <Ionicons name="layers-outline" size={20} color={Colors.primary} />
+            <Text style={styles.openContentLabel}>Open Content</Text>
+          </Pressable>
+        </View>
+
         <View style={styles.shotSection}>
           <Text style={styles.sectionTitle}>Shot List</Text>
           <View style={styles.emptyShots}>
@@ -196,6 +363,25 @@ export default function JobDashboardScreen() {
 
         <View style={styles.dangerZone}>
           <Text style={styles.dangerTitle}>Job actions</Text>
+          {lifecycleError ? (
+            <View accessibilityRole="alert" style={styles.lifecycleError}>
+              <Ionicons name="alert-circle-outline" size={20} color={Colors.danger} />
+              <Text style={styles.lifecycleErrorText}>{lifecycleError}</Text>
+            </View>
+          ) : null}
+          <PrimaryButton
+            label={job.archivedAt ? 'Restore Job' : 'Archive Job'}
+            icon={job.archivedAt ? 'refresh-outline' : 'archive-outline'}
+            loading={lifecycleBusy}
+            onPress={
+              job.archivedAt
+                ? () => void handleRestore()
+                : () => {
+                    setLifecycleError(undefined);
+                    setArchiveVisible(true);
+                  }
+            }
+          />
           <PrimaryButton
             label="Delete Job"
             icon="trash-outline"
@@ -204,11 +390,24 @@ export default function JobDashboardScreen() {
           />
         </View>
       </ScrollView>
+      <ConfirmDialog
+        visible={archiveVisible}
+        title="Archive this job?"
+        message={`“${job.name}” will move out of Active Jobs. Its original photos, saved pairs, and generated posts will stay on this device.`}
+        confirmLabel="Archive"
+        busy={lifecycleBusy}
+        onCancel={() => {
+          if (!lifecycleBusy) setArchiveVisible(false);
+        }}
+        onConfirm={() => void handleArchive()}
+      />
       <Modal
         animationType="fade"
         transparent
         visible={deleteVisible}
-        onRequestClose={() => setDeleteVisible(false)}>
+        onRequestClose={() => {
+          if (!deleting) setDeleteVisible(false);
+        }}>
         <View style={styles.modalBackdrop}>
           <View accessibilityViewIsModal style={styles.modalCard}>
             <View style={styles.modalIcon}>
@@ -216,26 +415,43 @@ export default function JobDashboardScreen() {
             </View>
             <Text style={styles.modalTitle}>Delete job?</Text>
             <Text style={styles.modalMessage}>
-              “{job.name}” and its job details will be removed from this device.
+              “{job.name}”, its original photos, saved pairs, and generated posts will be permanently removed from this device.
             </Text>
+            {deleteError ? (
+              <View accessibilityRole="alert" style={styles.modalError}>
+                <Ionicons name="alert-circle-outline" size={20} color={Colors.danger} />
+                <Text style={styles.modalErrorText}>{deleteError}</Text>
+              </View>
+            ) : null}
             <View style={styles.modalActions}>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Cancel delete"
-                onPress={() => setDeleteVisible(false)}
+                accessibilityState={{ disabled: deleting }}
+                disabled={deleting}
+                onPress={() => {
+                  setDeleteError(undefined);
+                  setDeleteVisible(false);
+                }}
                 style={({ pressed }) => [styles.modalButton, pressed && styles.modalPressed]}>
                 <Text style={styles.cancelLabel}>Cancel</Text>
               </Pressable>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Confirm delete job"
+                accessibilityState={{ busy: deleting, disabled: deleting }}
+                disabled={deleting}
                 onPress={() => void handleDelete()}
                 style={({ pressed }) => [
                   styles.modalButton,
                   styles.confirmButton,
                   pressed && styles.modalPressed,
                 ]}>
-                <Text style={styles.confirmLabel}>Delete</Text>
+                {deleting ? (
+                  <ActivityIndicator color={Colors.surface} size="small" />
+                ) : (
+                  <Text style={styles.confirmLabel}>Delete</Text>
+                )}
               </Pressable>
             </View>
           </View>
@@ -283,6 +499,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 23,
     marginTop: Spacing.xs,
+  },
+  archivedBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+    padding: Spacing.lg,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: '#B7D1FF',
+    backgroundColor: Colors.primarySoft,
+  },
+  archivedText: {
+    flex: 1,
+    gap: 2,
+  },
+  archivedTitle: {
+    color: Colors.text,
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  archivedMessage: {
+    color: Colors.textMuted,
+    fontSize: 13,
+    lineHeight: 19,
   },
   detailsCard: {
     borderRadius: Radius.md,
@@ -377,6 +617,106 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 2,
   },
+  generatedSection: {
+    gap: Spacing.md,
+    padding: Spacing.lg,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  generatedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.md,
+  },
+  generatedCountBadge: {
+    minWidth: 38,
+    minHeight: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.sm,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.primarySoft,
+  },
+  generatedCountText: {
+    color: Colors.primary,
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  latestGeneratedRow: {
+    minHeight: 92,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    padding: Spacing.sm,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surfaceMuted,
+  },
+  latestGeneratedThumbnail: {
+    width: 74,
+    height: 74,
+    borderRadius: Radius.sm,
+    backgroundColor: Colors.border,
+  },
+  latestGeneratedText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  latestGeneratedTitle: {
+    color: Colors.text,
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '800',
+  },
+  latestGeneratedMetadata: {
+    color: Colors.primary,
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  latestGeneratedDate: {
+    color: Colors.textMuted,
+    fontSize: 11,
+    lineHeight: 17,
+    marginTop: 1,
+  },
+  noGeneratedContent: {
+    minHeight: 72,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    padding: Spacing.md,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surfaceMuted,
+  },
+  noGeneratedContentText: {
+    flex: 1,
+    color: Colors.textMuted,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  openContentButton: {
+    minHeight: 46,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surface,
+  },
+  openContentLabel: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  generatedPressed: {
+    opacity: 0.64,
+  },
   shotSection: {
     gap: Spacing.md,
   },
@@ -412,6 +752,20 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     fontSize: 14,
     fontWeight: '600',
+  },
+  lifecycleError: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+    padding: Spacing.md,
+    borderRadius: Radius.sm,
+    backgroundColor: Colors.dangerSoft,
+  },
+  lifecycleErrorText: {
+    flex: 1,
+    color: Colors.danger,
+    fontSize: 13,
+    lineHeight: 19,
   },
   deleteButton: {
     backgroundColor: Colors.danger,
@@ -468,6 +822,22 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     textAlign: 'center',
     marginTop: Spacing.sm,
+  },
+  modalError: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+    padding: Spacing.md,
+    borderRadius: Radius.sm,
+    backgroundColor: Colors.dangerSoft,
+    marginTop: Spacing.lg,
+  },
+  modalErrorText: {
+    flex: 1,
+    color: Colors.danger,
+    fontSize: 13,
+    lineHeight: 19,
   },
   modalActions: {
     width: '100%',

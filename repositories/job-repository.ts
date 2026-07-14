@@ -5,5 +5,7 @@ export interface JobRepository {
   getJob(id: string): Promise<Job | undefined>;
   createJob(input: JobInput): Promise<Job>;
   updateJob(id: string, input: JobUpdateInput): Promise<Job | undefined>;
+  archiveJob(id: string): Promise<Job | undefined>;
+  restoreJob(id: string): Promise<Job | undefined>;
   deleteJob(id: string): Promise<boolean>;
 }
